@@ -46,7 +46,7 @@ export default function BookingPage() {
       setStatus('success');
 
       // Optionally redirect the user after success
-      setTimeout(() => navigate('/appointment/:id'), 1500); 
+      setTimeout(() => navigate('/appointments'), 1500); 
 
     } catch (error) {
       console.error('Error booking appointment:', error);

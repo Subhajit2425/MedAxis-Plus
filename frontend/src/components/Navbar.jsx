@@ -21,7 +21,7 @@ export default function Navbar() {
       <ul className="nav-links">
         <li><Link to="/">Home</Link></li>
         <li><Link to="/doctors">Doctors</Link></li>
-        <li><Link to="/appointment/:id">Appointment</Link></li>
+        <li><Link to="/appointments">Appointments</Link></li>
         <li><Link to="/about">About</Link></li>
 
         {/* Profile */}

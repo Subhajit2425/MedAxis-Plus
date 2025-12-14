@@ -37,7 +37,7 @@ export default function Appointment() {
   console.log("👤 Logged in email:", userEmail);
 
   if (!userEmail) {
-    setError("User not logged in.");
+    setError("You are not logged in.");
     setLoading(false);
     return;
   }
