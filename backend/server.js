@@ -19,7 +19,7 @@ const db = mysql.createConnection({
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: process.env.DB_PORT,
+  port: Number(process.env.DB_PORT),
   ssl: {
     rejectUnauthorized: false
   },
@@ -37,11 +37,15 @@ db.connect((err) => {
 
 // API: Get all doctors
 app.get("/api/doctors", (req, res) => {
-    db.query("SELECT * FROM doctors", (err, results) => {
-        if (err) return res.status(500).send(err);
-        res.send(results);
-    });
+  db.query("SELECT * FROM doctors", (err, results) => {
+    if (err) {
+      console.error("❌ SQL ERROR:", err);
+      return res.status(500).json({ error: err.message });
+    }
+    res.json(results);
+  });
 });
+
 
 // -----------------------------------------------------
 // API: Get single doctor by ID (Doctor Details Page)
