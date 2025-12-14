@@ -172,13 +172,17 @@ export default function Doctors() {
                     fontWeight: 600,
                     borderRadius: 2,
                   }}
-                  onClick={() =>
-                    navigate(
-                      `/book-appointment?doctorId=${doc.id}&doctorName=${encodeURIComponent(
-                        doc.name
-                      )}`
-                    )
-                  }
+                  onClick={() => {
+                    if (localStorage.getItem("userEmail")) {
+                      navigate(
+                        `/book-appointment?doctorId=${doc.id}&doctorName=${encodeURIComponent(
+                          doc.name
+                        )}`
+                      );
+                    } else {
+                      navigate("/login");
+                    }
+                  }}
                 >
                   Book Appointment
                 </Button>
