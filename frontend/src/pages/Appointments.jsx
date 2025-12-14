@@ -9,6 +9,7 @@ export default function Appointment() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const userEmail = localStorage.getItem("userEmail");
 
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to delete this appointment?")) {
@@ -16,7 +17,8 @@ export default function Appointment() {
     }
 
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`)
+      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`,
+        { params: { email: userEmail } })
       .then(() => {
         // Remove deleted appointment from UI without reload
         setAppointments((prev) => prev.filter((item) => item.id !== id));
@@ -28,18 +30,27 @@ export default function Appointment() {
 
 
   useEffect(() => {
+    if (!userEmail) {
+      setError("User not logged in.");
+      setLoading(false);
+      return;
+    }
+
     axios
-      .get(`${import.meta.env.VITE_API_URL}/api/appointments`)
+      .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        params: { email: userEmail }
+      })
       .then((response) => {
         setAppointments(response.data);
         setLoading(false);
       })
       .catch((err) => {
         console.error("Error fetching appointments:", err);
-        setError("Unable to load Appointments. Please try again.");
+        setError("Unable to load appointments.");
         setLoading(false);
       });
   }, []);
+
 
   if (loading) {
     return (
