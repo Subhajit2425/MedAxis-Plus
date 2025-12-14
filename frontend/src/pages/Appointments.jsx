@@ -1,9 +1,25 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { Container, Typography, CircularProgress, Alert, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Paper, Card, CardContent } from "@mui/material";
+import {
+  Container,
+  Typography,
+  CircularProgress,
+  Alert,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
+  Card,
+  CardContent,
+  IconButton,
+  Box,
+  Chip
+} from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
-import IconButton from "@mui/material/IconButton";
 
 export default function Appointment() {
   const [appointments, setAppointments] = useState([]);
@@ -11,7 +27,7 @@ export default function Appointment() {
   const [error, setError] = useState(null);
 
   const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to delete this appointment?")) {
+    if (!window.confirm("Are you sure you want to cancel this appointment?")) {
       return;
     }
 
@@ -24,53 +40,50 @@ export default function Appointment() {
       .then(() => {
         setAppointments((prev) => prev.filter((item) => item.id !== id));
       })
-      .catch((err) => {
-        console.error("Delete error:", err);
-        alert("Failed to delete appointment");
+      .catch(() => {
+        alert("Failed to cancel appointment");
       });
   };
 
-
   useEffect(() => {
-  const userEmail = localStorage.getItem("userEmail");
+    const userEmail = localStorage.getItem("userEmail");
 
-  console.log("👤 Logged in email:", userEmail);
-
-  if (!userEmail) {
-    setError("You are not logged in.");
-    setLoading(false);
-    return;
-  }
-
-  axios
-    .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-      params: { email: userEmail }
-    })
-    .then((response) => {
-      setAppointments(response.data);
+    if (!userEmail) {
+      setError("You must be logged in to view appointments.");
       setLoading(false);
-    })
-    .catch((err) => {
-      console.error("Error fetching appointments:", err);
-      setError("Unable to load appointments.");
-      setLoading(false);
-    });
-}, []);
+      return;
+    }
 
+    axios
+      .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+        params: { email: userEmail }
+      })
+      .then((response) => {
+        setAppointments(response.data);
+        setLoading(false);
+      })
+      .catch(() => {
+        setError("Unable to load appointments.");
+        setLoading(false);
+      });
+  }, []);
 
+  /* -------------------- STATES -------------------- */
 
   if (loading) {
     return (
-      <Container style={{ textAlign: 'center', marginTop: '50px' }}>
-        <CircularProgress />
-        <Typography>Loading Appointments...</Typography>
+      <Container sx={{ textAlign: "center", mt: 8 }}>
+        <CircularProgress size={40} />
+        <Typography sx={{ mt: 2 }} color="text.secondary">
+          Fetching your appointments…
+        </Typography>
       </Container>
     );
   }
 
   if (error) {
     return (
-      <Container style={{ marginTop: '50px' }}>
+      <Container sx={{ mt: 6 }}>
         <Alert severity="error">{error}</Alert>
       </Container>
     );
@@ -78,51 +91,86 @@ export default function Appointment() {
 
   if (appointments.length === 0) {
     return (
-      <Container style={{ marginTop: '50px' }}>
-        <Card>
-          <CardContent>
-            <Typography variant="h5" component="h1" gutterBottom>
-              Your Appointments
+      <Container sx={{ mt: 6 }}>
+        <Card elevation={3} sx={{ borderRadius: 3 }}>
+          <CardContent sx={{ textAlign: "center", py: 6 }}>
+            <Typography variant="h5" fontWeight={600}>
+              No Appointments Found
             </Typography>
-            <Alert severity="info">You have no upcoming appointments booked.</Alert>
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              You haven’t booked any appointments yet.
+            </Typography>
           </CardContent>
         </Card>
       </Container>
     );
   }
 
-  return (
-    <Container style={{ marginTop: "40px" }}>
-      <Typography variant="h4" component="h1" gutterBottom>
-        Your Appointments
-      </Typography>
+  /* -------------------- UI -------------------- */
 
-      <TableContainer component={Paper} elevation={3}>
+  return (
+    <Container sx={{ mt: 6, mb: 6 }}>
+      <Box mb={3}>
+        <Typography variant="h4" fontWeight={700}>
+          My Appointments
+        </Typography>
+        <Typography color="text.secondary">
+          Manage your scheduled doctor visits
+        </Typography>
+      </Box>
+
+      <TableContainer
+        component={Paper}
+        elevation={4}
+        sx={{ borderRadius: 3, overflow: "hidden" }}
+      >
         <Table>
           <TableHead>
-            <TableRow>
-              <TableCell>Doctor Name</TableCell>
-              <TableCell>Patient Name</TableCell>
-              <TableCell>Mobile Number</TableCell>
-              <TableCell>Email</TableCell>
-              <TableCell>Booking Date</TableCell>
-              <TableCell></TableCell>
+            <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
+              <TableCell><b>Doctor</b></TableCell>
+              <TableCell><b>Patient</b></TableCell>
+              <TableCell><b>Mobile</b></TableCell>
+              <TableCell><b>Email</b></TableCell>
+              <TableCell><b>Date</b></TableCell>
+              <TableCell align="center"><b>Action</b></TableCell>
             </TableRow>
           </TableHead>
 
           <TableBody>
             {appointments.map((appt) => (
-              <TableRow key={appt.id}>
-                <TableCell>{appt.doctor_name}</TableCell>
-                <TableCell>{`${appt.first_name} ${appt.last_name}`}</TableCell>
-                <TableCell>{appt.mobile_number}</TableCell>
-                <TableCell>{appt.email}</TableCell>
-                <TableCell>{new Date(appt.created_at).toLocaleDateString()}</TableCell>
+              <TableRow
+                key={appt.id}
+                hover
+                sx={{ "&:last-child td": { borderBottom: 0 } }}
+              >
+                <TableCell>
+                  <Typography fontWeight={600}>
+                    {appt.doctor_name}
+                  </Typography>
+                </TableCell>
 
                 <TableCell>
+                  {appt.first_name} {appt.last_name}
+                </TableCell>
+
+                <TableCell>{appt.mobile_number}</TableCell>
+
+                <TableCell>
+                  <Chip
+                    label={appt.email}
+                    size="small"
+                    variant="outlined"
+                  />
+                </TableCell>
+
+                <TableCell>
+                  {new Date(appt.created_at).toLocaleDateString()}
+                </TableCell>
+
+                <TableCell align="center">
                   <IconButton
                     onClick={() => handleDelete(appt.id)}
-                    style={{ color: "red" }}
+                    color="error"
                   >
                     <DeleteIcon />
                   </IconButton>
