@@ -16,7 +16,7 @@ export default function Appointment() {
     }
 
     axios
-      .delete(`http://localhost:5000/api/appointments/${id}`)
+      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`)
       .then(() => {
         // Remove deleted appointment from UI without reload
         setAppointments((prev) => prev.filter((item) => item.id !== id));
