@@ -226,26 +226,35 @@ app.post("/api/register-user", (req, res) => {
 
 // API: Get all appointments (with doctor names using JOIN)
 app.get("/api/appointments", (req, res) => {
-    const sql = `
-        SELECT 
-            appointments.*, 
-            doctors.name AS doctor_name
-        FROM 
-            appointments
-        JOIN 
-            doctors ON appointments.doctor_id = doctors.id
-        ORDER BY 
-            appointments.created_at DESC;
-    `;
+  const userEmail = req.query.email;
 
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error fetching appointments:", err);
-            return res.status(500).send(err);
-        }
-        res.json(results);
-    });
+  if (!userEmail) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  const sql = `
+    SELECT 
+      appointments.*, 
+      doctors.name AS doctor_name
+    FROM 
+      appointments
+    JOIN 
+      doctors ON appointments.doctor_id = doctors.id
+    WHERE 
+      appointments.email = ?
+    ORDER BY 
+      appointments.created_at DESC;
+  `;
+
+  db.query(sql, [userEmail], (err, results) => {
+    if (err) {
+      console.error("Error fetching appointments:", err);
+      return res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+    res.json(results);
+  });
 });
+
 
 app.delete("/api/appointments/:id", (req, res) => {
     const appointmentId = req.params.id;
