@@ -13,10 +13,11 @@ export default function BookingPage() {
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
-    mobileNumber: '',
-    email: '',
+    mobileNumber: localStorage.getItem("userMobile") || '',
+    email: localStorage.getItem("userEmail") || '',
     doctorId: doctorId,
   });
+
   const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
 
   useEffect(() => {
@@ -40,11 +41,12 @@ export default function BookingPage() {
         `${import.meta.env.VITE_API_URL}/api/appointments`,
         formData
       );
-      
+
       console.log('Appointment booked:', response.data);
       setStatus('success');
+
       // Optionally redirect the user after success
-      // setTimeout(() => navigate('/confirmation'), 2000); 
+      setTimeout(() => navigate('/Appointments'), 2000); 
 
     } catch (error) {
       console.error('Error booking appointment:', error);
@@ -95,7 +97,7 @@ export default function BookingPage() {
                 required
                 type="tel"
                 value={formData.mobileNumber}
-                onChange={handleChange}
+                disabled
               />
             </Box>
             <Box mb={2}>
@@ -106,7 +108,7 @@ export default function BookingPage() {
                 required
                 type="email"
                 value={formData.email}
-                onChange={handleChange}
+                disabled
               />
             </Box>
             <Button

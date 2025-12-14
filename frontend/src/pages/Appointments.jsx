@@ -31,30 +31,32 @@ export default function Appointment() {
   };
 
 
-
   useEffect(() => {
-    const userEmail = localStorage.getItem("userEmail");
-    
-    if (!userEmail) {
-      setError("User not logged in.");
-      setLoading(false);
-      return;
-    }
+  const userEmail = localStorage.getItem("userEmail");
 
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
-        params: { email: userEmail }
-      })
-      .then((response) => {
-        setAppointments(response.data);
-        setLoading(false);
-      })
-      .catch((err) => {
-        console.error("Error fetching appointments:", err);
-        setError("Unable to load appointments.");
-        setLoading(false);
-      });
-  }, []);
+  console.log("👤 Logged in email:", userEmail);
+
+  if (!userEmail) {
+    setError("User not logged in.");
+    setLoading(false);
+    return;
+  }
+
+  axios
+    .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+      params: { email: userEmail }
+    })
+    .then((response) => {
+      setAppointments(response.data);
+      setLoading(false);
+    })
+    .catch((err) => {
+      console.error("Error fetching appointments:", err);
+      setError("Unable to load appointments.");
+      setLoading(false);
+    });
+}, []);
+
 
 
   if (loading) {

@@ -51,6 +51,7 @@ export default function LoginPage() {
 
       // ✅ Save login state
       localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("userMobile", formData.mobileNumber);
 
       // ✅ Redirect to home (NO reload)
       navigate("/", { replace: true });
