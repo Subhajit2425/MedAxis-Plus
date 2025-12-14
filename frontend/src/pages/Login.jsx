@@ -60,6 +60,7 @@ export default function LoginPage() {
       // Email already exists → treat as login
       if (error.response && error.response.status === 409) {
         localStorage.setItem("userEmail", formData.email);
+        localStorage.setItem("userMobile", formData.mobileNumber);
         navigate("/", { replace: true });
       } else {
         setStatus("error");
