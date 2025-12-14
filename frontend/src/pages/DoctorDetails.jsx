@@ -73,16 +73,21 @@ export default function DoctorDetails() {
           {/* Book Appointment Button */}
           <button
             className="book-appointment-btn"
-            onClick={() =>
-              navigate(
-                `/book-appointment?doctorId=${doctor.id}&doctorName=${encodeURIComponent(
-                  doctor.name
-                )}`
-              )
-            }
+            onClick={() => {
+              if (localStorage.getItem("userEmail")) {
+                navigate(
+                  `/book-appointment?doctorId=${doctor.id}&doctorName=${encodeURIComponent(
+                    doctor.name
+                  )}`
+                );
+              } else {
+                navigate("/login");
+              }
+            }}
           >
             Book Appointment
           </button>
+
         </div>
 
         {/* Info Grid */}
