@@ -257,19 +257,28 @@ app.get("/api/appointments", (req, res) => {
 
 
 app.delete("/api/appointments/:id", (req, res) => {
-    const appointmentId = req.params.id;
+  const appointmentId = req.params.id;
+  const userEmail = req.query.email;
 
-    const sqlDelete = `DELETE FROM appointments WHERE id = ?`;
+  const sql = `
+    DELETE FROM appointments 
+    WHERE id = ? AND email = ?
+  `;
 
-    db.query(sqlDelete, [appointmentId], (err, result) => {
-        if (err) {
-            console.error("Error deleting appointment:", err);
-            return res.status(500).json({ error: "Failed to delete appointment" });
-        }
+  db.query(sql, [appointmentId, userEmail], (err, result) => {
+    if (err) {
+      console.error("Error deleting appointment:", err);
+      return res.status(500).json({ error: "Failed to delete appointment" });
+    }
 
-        res.json({ message: "Appointment deleted successfully" });
-    });
+    if (result.affectedRows === 0) {
+      return res.status(403).json({ error: "Unauthorized action" });
+    }
+
+    res.json({ message: "Appointment deleted successfully" });
+  });
 });
+
 
 app.get("/", (req, res) => {
   res.send("MedAxis+ Backend is running 🚀");
