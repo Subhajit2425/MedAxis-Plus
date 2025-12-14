@@ -6,7 +6,7 @@ import { Container, Card, CardContent, Typography, TextField, Button, Box, Alert
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
-  
+
   const doctorId = searchParams.get('doctorId');
   const doctorName = searchParams.get('doctorName') || 'Selected Doctor';
 
@@ -21,8 +21,8 @@ export default function BookingPage() {
 
   useEffect(() => {
     if (!doctorId) {
-        // Redirect if no doctor ID is provided in the URL
-        navigate('/doctors');
+      // Redirect if no doctor ID is provided in the URL
+      navigate('/doctors');
     }
   }, [doctorId, navigate]);
 
@@ -36,7 +36,11 @@ export default function BookingPage() {
 
     try {
       // Send the data to your back-end API endpoint
-      const response = await axios.post('http://localhost:5000/api/appointments', formData);
+      const response = await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/appointments`,
+        formData
+      );
+      
       console.log('Appointment booked:', response.data);
       setStatus('success');
       // Optionally redirect the user after success
@@ -58,10 +62,10 @@ export default function BookingPage() {
           <Typography variant="h6" color="primary" gutterBottom>
             {`With ${doctorName}`}
           </Typography>
-          
+
           {status === 'success' && <Alert severity="success">Appointment successfully booked!</Alert>}
           {status === 'error' && <Alert severity="error">Failed to book appointment. Please try again.</Alert>}
-          
+
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
               <TextField
@@ -105,10 +109,10 @@ export default function BookingPage() {
                 onChange={handleChange}
               />
             </Box>
-            <Button 
-              type="submit" 
-              variant="contained" 
-              color="primary" 
+            <Button
+              type="submit"
+              variant="contained"
+              color="primary"
               fullWidth
               disabled={status === 'loading'}
             >
