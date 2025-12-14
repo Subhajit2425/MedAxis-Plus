@@ -27,7 +27,7 @@ export default function DoctorDetails() {
 
   useEffect(() => {
     axios
-      .get(`http://localhost:5000/api/doctors/${doctorId}`)
+      .get(`${import.meta.env.VITE_API_URL}/api/doctors/${doctorId}`)
       .then((res) => {
         setDoctor(res.data);
         setLoading(false);

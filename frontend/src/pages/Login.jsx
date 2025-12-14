@@ -43,7 +43,11 @@ export default function LoginPage() {
     setStatus("loading");
 
     try {
-      await axios.post("http://localhost:5000/api/register-user", formData);
+      await axios.post(
+        `${import.meta.env.VITE_API_URL}/api/register-user`,
+        formData
+      );
+
 
       // ✅ Save login state
       localStorage.setItem("userEmail", formData.email);

@@ -37,7 +37,7 @@ export default function Doctors() {
 
   useEffect(() => {
     axios
-      .get("http://localhost:5000/api/doctors")
+      .get(`${import.meta.env.VITE_API_URL}/api/doctors`)
       .then((response) => {
         setDoctors(response.data);
         setLoading(false);

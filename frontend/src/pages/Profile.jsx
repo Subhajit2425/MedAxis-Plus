@@ -35,7 +35,7 @@ export default function Profile() {
     }
 
     axios
-      .get(`http://localhost:5000/api/user/${encodeURIComponent(email)}`)
+      .get(`${import.meta.env.VITE_API_URL}/api/user/${encodeURIComponent(email)}`)
       .then((res) => {
         setUser({
           firstName: res.data.first_name,
