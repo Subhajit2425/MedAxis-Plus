@@ -6,10 +6,14 @@ const cors = require("cors");
 
 const app = express();
 app.use(cors({
-  origin: "https://subhajit2425.github.io",
+  origin: [
+    "https://subhajit2425.github.io",
+    "https://subhajit2425.github.io/MedAxis-Plus"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
 
 app.use(express.json());
 
@@ -20,7 +24,6 @@ const db = mysql.createConnection({
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: Number(process.env.DB_PORT),
-  family: 4, // 👈 IMPORTANT
   ssl: {
     rejectUnauthorized: false
   },
@@ -226,6 +229,7 @@ app.post("/api/register-user", (req, res) => {
 
 // API: Get all appointments (with doctor names using JOIN)
 app.get("/api/appointments", (req, res) => {
+  console.log("🔥 BACKEND email param:", req.query.email);
   const userEmail = req.query.email;
 
   if (!userEmail) {
