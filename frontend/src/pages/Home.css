@@ -1,0 +1,226 @@
+/* Global Reset */
+* {
+  color: #000;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+.home {
+  font-family: "Inter", Arial, sans-serif;
+  padding-bottom: 60px;
+  background: #fafafa;
+}
+
+/* ---------------- HERO SECTION ---------------- */
+.hero {
+  text-align: center;
+  padding: 70px 25px;
+  background: linear-gradient(to top right, #ffffff, #f3f7ff);
+  border-radius: 14px;
+  margin: 70px 20px 55px;
+  box-shadow: 0px 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.hero h1 {
+  font-size: 36px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+}
+
+.hero p {
+  font-size: 18px;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+/* Search Bar */
+.search-box {
+  margin-top: 25px;
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.search-input {
+  background: #ffffff;
+  border: 1px solid #dcdcdc;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 16px;
+  width: 260px;
+  transition: 0.2s;
+}
+
+.search-input:focus {
+  border-color: #4a90e2;
+  box-shadow: 0 0 6px rgba(74, 144, 226, 0.3);
+}
+
+.search-input::placeholder {
+  color: #8e8e8e;
+}
+
+.search-btn {
+  background: #1a73e8;
+  color: white;
+  padding: 12px 28px;
+  border-radius: 10px;
+  font-size: 17px;
+  border: none;
+  cursor: pointer;
+  transition: 0.25s;
+  font-weight: 600;
+}
+
+.search-btn:hover {
+  background: #135fc7;
+  transform: translateY(-1px);
+}
+
+/* ---------------- SECTION TITLES ---------------- */
+.section-title {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 25px;
+  text-align: center;
+  color: #1f1f1f;
+}
+
+/* ---------------- LAYOUTS ---------------- */
+.specialities,
+.doctors,
+.services,
+.testimonials {
+  padding: 40px 25px;
+}
+
+.spec-grid,
+.doctor-grid,
+.services-grid,
+.test-grid {
+  display: flex;
+  gap: 25px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------------- CARD BASE STYLE ---------------- */
+.spec-card,
+.doctor-card,
+.service-card,
+.test-card {
+  width: 190px;
+  padding: 22px;
+  background: white;
+  border-radius: 14px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.07);
+  transition: 0.25s ease;
+  cursor: pointer;
+}
+
+.spec-card:hover,
+.doctor-card:hover,
+.service-card:hover,
+.test-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.1);
+}
+
+/* ---------------- SPECIALITIES ---------------- */
+.spec-icon {
+  margin-bottom: 10px;
+  color: #1a73e8;
+}
+
+.spec-name {
+  margin-top: 8px;
+  font-size: 17px;
+  font-weight: 600;
+}
+
+/* ---------------- DOCTORS ---------------- */
+.doctor-card img {
+  width: 80px;
+  margin-bottom: 12px;
+}
+
+.doctor-name {
+  font-size: 18px;
+  font-weight: 700;
+  color: #1f1f1f;
+}
+
+.doctor-spec {
+  font-size: 15px;
+  color: #666;
+  margin: 4px 0;
+}
+
+.doctor-exp {
+  color: gray;
+  font-size: 14px;
+}
+
+.book-btn {
+  margin-top: 12px;
+  padding: 9px 16px;
+  background: #4a90e2;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: 0.25s;
+}
+
+.book-btn:hover {
+  background: #3a78c7;
+}
+
+/* ---------------- SERVICES ---------------- */
+.service-icon {
+  color: #0073e6;
+  margin-bottom: 12px;
+}
+
+.service-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* ---------------- TESTIMONIALS ---------------- */
+.test-card {
+  width: 270px;
+  font-size: 15px;
+  background: #f7f9fc;
+  border-radius: 12px;
+  padding: 18px;
+  line-height: 1.5;
+  color: #444;
+}
+
+.test-text {
+  font-style: italic;
+}
+
+/* ---------------- MEDIA QUERIES ---------------- */
+@media (max-width: 600px) {
+  .hero h1 {
+    font-size: 28px;
+  }
+
+  .hero {
+    padding: 50px 20px;
+  }
+
+  .spec-card,
+  .doctor-card,
+  .service-card,
+  .test-card {
+    width: 160px;
+  }
+}
