@@ -1,5 +1,5 @@
 import React from "react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route } from "react-router-dom";
 
 import ScrollToTop from "./ScrollToTop";
 import Layout from "./layout/Layout";
@@ -16,7 +16,7 @@ import About from "./pages/About";
 
 function App() {
   return (
-    <BrowserRouter>
+    <>
       <ScrollToTop />
       <Layout>
         <div className="app-container">
@@ -33,7 +33,7 @@ function App() {
           </Routes>
         </div>
       </Layout>
-    </BrowserRouter>
+    </>
   );
 }
 
