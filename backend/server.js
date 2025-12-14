@@ -260,8 +260,12 @@ app.delete("/api/appointments/:id", (req, res) => {
   const appointmentId = req.params.id;
   const userEmail = req.query.email;
 
+  if (!userEmail) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
   const sql = `
-    DELETE FROM appointments 
+    DELETE FROM appointments
     WHERE id = ? AND email = ?
   `;
 
@@ -272,7 +276,7 @@ app.delete("/api/appointments/:id", (req, res) => {
     }
 
     if (result.affectedRows === 0) {
-      return res.status(403).json({ error: "Unauthorized action" });
+      return res.status(403).json({ error: "Unauthorized or not found" });
     }
 
     res.json({ message: "Appointment deleted successfully" });

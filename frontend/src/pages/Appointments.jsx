@@ -9,27 +9,32 @@ export default function Appointment() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const userEmail = localStorage.getItem("userEmail");
 
   const handleDelete = (id) => {
     if (!window.confirm("Are you sure you want to delete this appointment?")) {
       return;
     }
 
+    const userEmail = localStorage.getItem("userEmail");
+
     axios
-      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`,
-        { params: { email: userEmail } })
+      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`, {
+        params: { email: userEmail }
+      })
       .then(() => {
-        // Remove deleted appointment from UI without reload
         setAppointments((prev) => prev.filter((item) => item.id !== id));
       })
-      .catch(() => {
+      .catch((err) => {
+        console.error("Delete error:", err);
         alert("Failed to delete appointment");
       });
   };
 
 
+
   useEffect(() => {
+    const userEmail = localStorage.getItem("userEmail");
+    
     if (!userEmail) {
       setError("User not logged in.");
       setLoading(false);
