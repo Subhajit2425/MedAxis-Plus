@@ -31,9 +31,16 @@ export default function Doctors() {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
-  const [searchTerm, setSearchTerm] = useState(
-    searchParams.get("specialization") || ""
-  );
+  const search = searchParams.get("search") || "";
+  const specialization = searchParams.get("specialization") || "";
+
+  const [searchTerm, setSearchTerm] = useState(search || specialization);
+
+
+  useEffect(() => {
+    setSearchTerm(search || specialization);
+  }, [search, specialization]);
+
 
   useEffect(() => {
     api
@@ -49,12 +56,17 @@ export default function Doctors() {
   }, []);
 
   const filteredDoctors = doctors.filter((doc) => {
-    const q = searchTerm.toLowerCase();
-    return (
-      doc.name.toLowerCase().includes(q) ||
-      doc.specialization.toLowerCase().includes(q)
-    );
-  });
+  const q = searchTerm.toLowerCase();
+
+  if (!q) return true;
+
+  return (
+    doc.name.toLowerCase().includes(q) ||
+    doc.specialization.toLowerCase().includes(q) ||
+    doc.address.toLowerCase().includes(q)
+  );
+});
+
 
   if (loading) {
     return (

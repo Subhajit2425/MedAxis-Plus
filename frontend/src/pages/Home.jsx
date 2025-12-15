@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
@@ -50,13 +50,14 @@ const servicesData = [
 
 const Home = () => {
   const navigate = useNavigate();
+  const [heroSearch, setHeroSearch] = useState("");
 
   const handleSpecialization = (name) => {
     navigate(`/doctors?specialization=${encodeURIComponent(name)}`);
   };
 
   const handleHeroSearch = () => {
-    navigate(`/doctors`);
+    navigate(`/doctors?search=${encodeURIComponent(heroSearch)}`);
   };
 
   const handleServices = (service) => {
@@ -76,14 +77,16 @@ const Home = () => {
         <div className="search-box">
           <input
             type="text"
-            placeholder="Search doctors, diseases..."
+            placeholder="Search doctors, specialization, location..."
             className="search-input"
+            value={heroSearch}
+            onChange={(e) => setHeroSearch(e.target.value)}
           />
-          <input
+          {/* <input
             type="text"
             placeholder="Enter city / location"
             className="search-input"
-          />
+          /> */}
           <button className="search-btn" onClick={handleHeroSearch}>
             Search
           </button>

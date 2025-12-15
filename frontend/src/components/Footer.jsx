@@ -93,7 +93,7 @@ export default function Footer() {
             Quick Links
           </h4>
           <a href="/doctors" style={linkStyle}>Find a Doctor</a>
-          <a href="/appointment/:id" style={linkStyle}>My Appointments</a>
+          <a href="/appointments" style={linkStyle}>My Appointments</a>
           <a href="/about" style={linkStyle}>About</a>
           <a href="/contact" style={linkStyle}>Contact</a>
         </div>

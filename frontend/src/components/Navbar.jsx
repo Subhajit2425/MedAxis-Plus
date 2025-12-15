@@ -22,7 +22,6 @@ export default function Navbar() {
         <li><Link to="/">Home</Link></li>
         <li><Link to="/doctors">Doctors</Link></li>
         <li><Link to="/appointments">Appointments</Link></li>
-        <li><Link to="/about">About</Link></li>
 
         {/* Profile */}
         {isLoggedIn && (
