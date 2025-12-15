@@ -2,20 +2,22 @@ require("dotenv").config();
 
 const express = require("express");
 const mysql = require("mysql2");
+const app = express();
+
 const cors = require("cors");
 
-const app = express();
 app.use(cors({
   origin: [
-    "https://subhajit2425.github.io",
-    "https://subhajit2425.github.io/MedAxis-Plus"
+    "http://localhost:5173",              // local dev (Vite)
+    "https://subhajit2425.github.io",     // GitHub Pages root
+    "https://subhajit2425.github.io/MedAxis-Plus" // GitHub Pages app
   ],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
 
-
 app.use(express.json());
+
 
 // MySQL Connection
 const db = mysql.createConnection({

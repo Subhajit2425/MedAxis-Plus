@@ -15,8 +15,6 @@ import {
   FaHospitalSymbol,
   FaAmbulance,
   FaFemale,
-  FaRibbon,
-  FaComments,
   FaBone,
   FaClinicMedical ,
   FaBaby,

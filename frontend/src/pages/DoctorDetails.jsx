@@ -1,4 +1,6 @@
 import React, { useEffect, useState } from "react";
+import api from "../api";
+
 import {
   FaBriefcase,
   FaMapMarkerAlt,
