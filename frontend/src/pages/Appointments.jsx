@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import {
   Container,
   Typography,
@@ -33,8 +32,8 @@ export default function Appointment() {
 
     const userEmail = localStorage.getItem("userEmail");
 
-    axios
-      .delete(`${import.meta.env.VITE_API_URL}/api/appointments/${id}`, {
+    api
+      .delete(`/api/appointments/${id}`, {
         params: { email: userEmail }
       })
       .then(() => {
@@ -54,8 +53,8 @@ export default function Appointment() {
       return;
     }
 
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/appointments`, {
+    api
+      .get(`/api/appointments`, {
         params: { email: userEmail }
       })
       .then((response) => {

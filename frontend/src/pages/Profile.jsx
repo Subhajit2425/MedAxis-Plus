@@ -1,5 +1,4 @@
-import React, { useEffect, useState } from "react";
-import axios from "axios";
+import React, { useEffect, useState } from "react"
 import {
   Container,
   Card,
@@ -34,8 +33,8 @@ export default function Profile() {
       return;
     }
 
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/user/${encodeURIComponent(email)}`)
+    api
+      .get(`/api/user/${encodeURIComponent(email)}`)
       .then((res) => {
         setUser({
           firstName: res.data.first_name,
@@ -57,8 +56,8 @@ export default function Profile() {
     setSaving(true);
 
     try {
-      await axios.put(
-        `http://localhost:5000/api/user/${encodeURIComponent(email)}`,
+      await api.put(
+        `/api/user/${encodeURIComponent(email)}`,
         {
           firstName: user.firstName,
           lastName: user.lastName,

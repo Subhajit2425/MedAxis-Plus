@@ -6,7 +6,6 @@ import {
   FaUserNurse
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
-import axios from "axios";
 import "./DoctorDetails.css";
 
 import {
@@ -26,8 +25,8 @@ export default function DoctorDetails() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/doctors/${doctorId}`)
+    api
+      .get(`/api/doctors/${doctorId}`)
       .then((res) => {
         setDoctor(res.data);
         setLoading(false);

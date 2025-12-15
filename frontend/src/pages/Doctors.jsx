@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
 import {
@@ -36,8 +35,8 @@ export default function Doctors() {
   );
 
   useEffect(() => {
-    axios
-      .get(`${import.meta.env.VITE_API_URL}/api/doctors`)
+    api
+      .get(`/api/doctors`)
       .then((response) => {
         setDoctors(response.data);
         setLoading(false);

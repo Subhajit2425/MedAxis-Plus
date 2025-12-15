@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
 
 export default function BookingPage() {
@@ -37,8 +36,8 @@ export default function BookingPage() {
 
     try {
       // Send the data to your back-end API endpoint
-      const response = await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/appointments`,
+      const response = await api.post(
+        `/api/appointments`,
         formData
       );
 

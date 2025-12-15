@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from "react";
-import axios from "axios";
 import {
   Container,
   Card,
@@ -43,8 +42,8 @@ export default function LoginPage() {
     setStatus("loading");
 
     try {
-      await axios.post(
-        `${import.meta.env.VITE_API_URL}/api/register-user`,
+      await api.post(
+        `/api/register-user`,
         formData
       );
 
