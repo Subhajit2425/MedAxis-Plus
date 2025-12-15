@@ -17,6 +17,10 @@ import { useNavigate } from "react-router-dom";
 export default function LoginPage() {
   const navigate = useNavigate();
 
+  const [otpSent, setOtpSent] = useState(false);
+  const [otp, setOtp] = useState("");
+  const [status, setStatus] = useState("idle"); // idle | loading | error
+
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
@@ -25,9 +29,7 @@ export default function LoginPage() {
     dateOfBirth: "",
   });
 
-  const [status, setStatus] = useState("idle"); // idle | loading | error
-
-  // 🔥 If already logged in, redirect to home
+  // 🔥 Redirect if already logged in
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail) {
@@ -39,33 +41,37 @@ export default function LoginPage() {
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
+  // ✅ STEP 1: SEND OTP
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("loading");
 
     try {
-      await api.post(
-        `/api/register-user`,
-        formData
-      );
+      await api.post("/api/send-otp", formData);
+      setOtpSent(true);
+      setStatus("idle");
+      alert("Verification code sent to your email");
+    } catch {
+      setStatus("error");
+    }
+  };
 
+  // ✅ STEP 2: VERIFY OTP
+  const handleVerifyOtp = async () => {
+    setStatus("loading");
 
-      // ✅ Save login state
+    try {
+      await api.post("/api/verify-otp", {
+        email: formData.email,
+        otp,
+      });
+
       localStorage.setItem("userEmail", formData.email);
       localStorage.setItem("userMobile", formData.mobileNumber);
-
-      // ✅ Redirect to home (NO reload)
       navigate("/", { replace: true });
-
-    } catch (error) {
-      // Email already exists → treat as login
-      if (error.response && error.response.status === 409) {
-        localStorage.setItem("userEmail", formData.email);
-        localStorage.setItem("userMobile", formData.mobileNumber);
-        navigate("/", { replace: true });
-      } else {
-        setStatus("error");
-      }
+    } catch {
+      alert("Invalid or expired verification code");
+      setStatus("idle");
     }
   };
 
@@ -74,7 +80,11 @@ export default function LoginPage() {
       <Card elevation={4}>
         <CardContent>
           <Typography variant="h5" gutterBottom>
-            Login / Register
+            Login / Sign up
+          </Typography>
+
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            We’ll send a verification code to your email every time you log in.
           </Typography>
 
           {status === "error" && (
@@ -92,6 +102,7 @@ export default function LoginPage() {
                 required
                 value={formData.firstName}
                 onChange={handleChange}
+                disabled={otpSent}
               />
             </Box>
 
@@ -103,6 +114,7 @@ export default function LoginPage() {
                 required
                 value={formData.lastName}
                 onChange={handleChange}
+                disabled={otpSent}
               />
             </Box>
 
@@ -114,6 +126,7 @@ export default function LoginPage() {
                 required
                 value={formData.mobileNumber}
                 onChange={handleChange}
+                disabled={otpSent}
               />
             </Box>
 
@@ -126,6 +139,7 @@ export default function LoginPage() {
                 required
                 value={formData.email}
                 onChange={handleChange}
+                disabled={otpSent}
               />
             </Box>
 
@@ -139,21 +153,43 @@ export default function LoginPage() {
                 InputLabelProps={{ shrink: true }}
                 value={formData.dateOfBirth}
                 onChange={handleChange}
+                disabled={otpSent}
               />
             </Box>
 
-            <Button
-              type="submit"
-              variant="contained"
-              fullWidth
-              disabled={status === "loading"}
-            >
-              {status === "loading" ? (
-                <CircularProgress size={24} />
-              ) : (
-                "Login / Register"
-              )}
-            </Button>
+            {/* OTP INPUT */}
+            {otpSent && (
+              <Box mb={2}>
+                <TextField
+                  label="Verification Code"
+                  value={otp}
+                  onChange={(e) => setOtp(e.target.value)}
+                  fullWidth
+                  required
+                />
+              </Box>
+            )}
+
+            {/* BUTTONS */}
+            {!otpSent ? (
+              <Button
+                type="submit"
+                variant="contained"
+                fullWidth
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? <CircularProgress size={24} /> : "Continue"}
+              </Button>
+            ) : (
+              <Button
+                variant="contained"
+                fullWidth
+                onClick={handleVerifyOtp}
+                disabled={status === "loading"}
+              >
+                {status === "loading" ? <CircularProgress size={24} /> : "Verify & Login"}
+              </Button>
+            )}
           </form>
         </CardContent>
       </Card>
