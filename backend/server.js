@@ -274,7 +274,7 @@ app.post("/api/send-otp", async (req, res) => {
   const { firstName, lastName, mobileNumber, email, dateOfBirth } = req.body;
 
   const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 min
+  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
   db.query(
     "SELECT * FROM users WHERE email = ?",
@@ -285,7 +285,7 @@ app.post("/api/send-otp", async (req, res) => {
         return res.status(500).json({ error: "Server error" });
       }
 
-      // 🆕 New user
+      // 🆕 NEW USER → create account
       if (results.length === 0) {
         db.query(
           `
@@ -295,21 +295,40 @@ app.post("/api/send-otp", async (req, res) => {
           `,
           [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
         );
-      } 
-      // 🔁 Existing user
+      }
+      // 🔁 EXISTING USER → update profile + OTP
       else {
         db.query(
-          "UPDATE users SET otp_code = ?, otp_expires_at = ? WHERE email = ?",
-          [otp, expiresAt, email]
+          `
+          UPDATE users
+          SET 
+            first_name = ?,
+            last_name = ?,
+            mobile_number = ?,
+            date_of_birth = ?,
+            otp_code = ?,
+            otp_expires_at = ?
+          WHERE email = ?
+          `,
+          [
+            firstName,
+            lastName,
+            mobileNumber,
+            dateOfBirth,
+            otp,
+            expiresAt,
+            email
+          ]
         );
       }
 
+      // 📧 Send OTP
       await sendEmail(
         email,
         "Your MedAxis+ Verification Code",
         `
         <h2>MedAxis+ Login Code</h2>
-        <p>Use this code to log in:</p>
+        <p>Your verification code is:</p>
         <h1>${otp}</h1>
         <p>This code expires in 5 minutes.</p>
         `
@@ -319,6 +338,7 @@ app.post("/api/send-otp", async (req, res) => {
     }
   );
 });
+
 
 
 app.post("/api/verify-otp", (req, res) => {

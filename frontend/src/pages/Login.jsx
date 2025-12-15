@@ -84,7 +84,7 @@ export default function LoginPage() {
           </Typography>
 
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            We’ll send a verification code to your email every time you log in.
+            If this email is already registered, we’ll log you into your existing account.
           </Typography>
 
           {status === "error" && (

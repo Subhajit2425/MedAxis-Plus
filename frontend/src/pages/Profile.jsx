@@ -79,7 +79,7 @@ export default function Profile() {
 
 
   const handleLogout = () => {
-    if (!window.confirm("Are you sure you want to logout?")) return;
+    if (!window.confirm("Are you sure you want to logout ?")) return;
     localStorage.clear();
     navigate("/", { replace: true });
   };
