@@ -7,6 +7,7 @@ import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 export default function Navbar() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
+  const isAdmin = localStorage.getItem("isAdmin");
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("userEmail"));
@@ -22,6 +23,15 @@ export default function Navbar() {
         <li><Link to="/">Home</Link></li>
         <li><Link to="/doctors">Doctors</Link></li>
         <li><Link to="/appointments">Appointments</Link></li>
+        {/* Admin (only on your device) */}
+        {isAdmin && (
+          <li>
+            <Link to="/admin" className="admin-link">
+              Admin
+            </Link>
+          </li>
+        )}
+
 
         {/* Profile */}
         {isLoggedIn && (

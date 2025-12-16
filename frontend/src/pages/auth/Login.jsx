@@ -11,8 +11,10 @@ import {
   Box,
   Alert,
   CircularProgress,
+  Divider,
+  Link,
 } from "@mui/material";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link as RouterLink } from "react-router-dom";
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -191,6 +193,28 @@ export default function LoginPage() {
               </Button>
             )}
           </form>
+          {/* ───────── Doctor Login Option ───────── */}
+          <Divider sx={{ my: 3 }} />
+
+          <Typography variant="body2" align="center" color="text.secondary">
+            Are you a doctor?
+          </Typography>
+
+          <Box textAlign="center" mt={1}>
+            <Link
+              component={RouterLink}
+              to="/doctor/login"
+              underline="hover"
+              sx={{
+                fontWeight: 600,
+                fontSize: "0.95rem",
+                cursor: "pointer",
+              }}
+            >
+              Login as a Doctor
+            </Link>
+          </Box>
+
         </CardContent>
       </Card>
     </Container>

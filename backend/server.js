@@ -470,6 +470,61 @@ app.post("/api/doctor/verify-otp", (req, res) => {
 });
 
 
+app.post("/api/doctor/register", (req, res) => {
+  const {
+    email,
+    name,
+    specialization,
+    experience,
+    address,
+    fees
+  } = req.body;
+
+  if (!email || !name || !specialization) {
+    return res.status(400).json({ error: "Missing required fields" });
+  }
+
+  // 🔍 Check if doctor already exists
+  db.query(
+    "SELECT id FROM doctors WHERE email = ?",
+    [email],
+    (err, results) => {
+      if (err) {
+        console.error("Doctor check error:", err);
+        return res.status(500).json({ error: "Server error" });
+      }
+
+      if (results.length > 0) {
+        return res
+          .status(400)
+          .json({ error: "Doctor already registered" });
+      }
+
+      // ✅ Insert new doctor (status = pending)
+      db.query(
+        `
+        INSERT INTO doctors
+        (email, name, specialization, experience, address, fees, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'pending')
+        `,
+        [email, name, specialization, experience, address, fees],
+        (err) => {
+          if (err) {
+            console.error("Doctor register error:", err);
+            return res.status(500).json({ error: "Registration failed" });
+          }
+
+          res.json({
+            message: "Doctor registered successfully. Awaiting approval."
+          });
+        }
+      );
+    }
+  );
+});
+
+
+
 app.post("/api/feedback", (req, res) => {
   const { name, email, subject, message } = req.body;
 
