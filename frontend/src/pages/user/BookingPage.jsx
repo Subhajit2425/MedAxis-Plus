@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import api from "../api";
+import api from "../../api/api";
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Container, Card, CardContent, Typography, TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
 

@@ -4,16 +4,16 @@ import { Routes, Route } from "react-router-dom";
 import ScrollToTop from "./ScrollToTop";
 import Layout from "./layout/Layout";
 
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import DoctorsRegister from "./pages/DoctorsRegister";
-import Doctors from "./pages/Doctors";
-import DoctorDetails from "./pages/DoctorDetails";
-import BookingPage from "./pages/BookingPage";
-import Appointment from "./pages/Appointments";
-import Profile from "./pages/Profile";
-import About from "./pages/About";
-import Contact from "./pages/Contact";
+import Home from "./pages/public/Home/Home";
+import Login from "./pages/auth/Login";
+import DoctorsRegister from "./pages/doctors/auth/DoctorRegister";
+import Doctors from "./pages/doctors/list/Doctors";
+import DoctorDetails from "./pages/doctors/details/DoctorDetails";
+import BookingPage from "./pages/user/BookingPage";
+import Appointment from "./pages/user/Appointments";
+import Profile from "./pages/auth/Profile";
+import About from "./pages/public/About/About";
+import Contact from "./pages/public/Contact/Contact";
 
 function App() {
   return (
