@@ -20,17 +20,17 @@ export default function Navbar() {
       </div>
 
       <ul className="nav-links">
-        <li><Link to="/">Home</Link></li>
+        {/* <li><Link to="/">Home</Link></li>
         <li><Link to="/doctors">Doctors</Link></li>
         <li><Link to="/appointments">Appointments</Link></li>
-        {/* Admin (only on your device) */}
+        
         {isAdmin && (
           <li>
             <Link to="/admin" className="admin-link">
               Admin
             </Link>
           </li>
-        )}
+        )} */}
 
 
         {/* Profile */}

@@ -1,25 +1,23 @@
-import React from "react";
 import Navbar from "../components/Navbar/Navbar";
+import Sidebar from "./Sidebar";
 import Footer from "../components/Footer/Footer";
+import "./Layout.css";
 
 export default function Layout({ children }) {
   return (
-    <div
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        minHeight: "100vh",
-        background: "#fff",
-        color: "#000",
-      }}
-    >
+    <div className="app-shell">
+      {/* Top minimal navbar */}
       <Navbar />
 
-      <div style={{ flex: 1, padding: "20px" }}>
-        {children}
-      </div>
+      {/* Sidebar + content */}
+      <div className="app-layout">
+        <Sidebar />
 
-      <Footer />
+        <div className="app-main">
+          <div className="app-content">{children}</div>
+          <Footer />
+        </div>
+      </div>
     </div>
   );
 }

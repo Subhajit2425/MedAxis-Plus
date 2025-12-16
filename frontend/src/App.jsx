@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 
+import AdminDashboard from "./pages/admin/AdminDashboard";
 import ScrollToTop from "./ScrollToTop";
 import Layout from "./layout/Layout";
 
@@ -31,6 +32,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/admin" element={<AdminDashboard />} />
 
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctor/:doctorId" element={<DoctorDetails />} />

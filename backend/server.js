@@ -480,48 +480,156 @@ app.post("/api/doctor/register", (req, res) => {
     fees
   } = req.body;
 
-  if (!email || !name || !specialization) {
+  if (!email || !name) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // 🔍 Check if doctor already exists
+  // 🔍 Prevent duplicate requests
   db.query(
-    "SELECT id FROM doctors WHERE email = ?",
+    "SELECT id FROM doctor_requests WHERE email = ?",
     [email],
-    (err, results) => {
-      if (err) {
-        console.error("Doctor check error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
+    (err, rows) => {
+      if (err) return res.status(500).json(err);
 
-      if (results.length > 0) {
+      if (rows.length > 0) {
         return res
           .status(400)
-          .json({ error: "Doctor already registered" });
+          .json({ error: "Doctor request already exists" });
       }
 
-      // ✅ Insert new doctor (status = pending)
+      // ✅ Insert into doctor_requests (NOT doctors)
       db.query(
         `
-        INSERT INTO doctors
+        INSERT INTO doctor_requests
         (email, name, specialization, experience, address, fees, status)
         VALUES (?, ?, ?, ?, ?, ?, 'pending')
         `,
         [email, name, specialization, experience, address, fees],
         (err) => {
-          if (err) {
-            console.error("Doctor register error:", err);
-            return res.status(500).json({ error: "Registration failed" });
-          }
+          if (err) return res.status(500).json(err);
 
           res.json({
-            message: "Doctor registered successfully. Awaiting approval."
+            message: "Registration submitted. Await admin approval."
           });
         }
       );
     }
   );
 });
+
+app.get("/api/admin/pending-doctors", (req, res) => {
+  db.query(
+    `
+    SELECT id, name, email, specialization, experience
+    FROM doctor_requests
+    WHERE status = 'pending'
+    `,
+    (err, results) => {
+      if (err) return res.status(500).json(err);
+      res.json(results);
+    }
+  );
+});
+
+app.put("/api/admin/approve-doctor/:id", (req, res) => {
+  const requestId = req.params.id;
+
+  // 1️⃣ Get request data
+  db.query(
+    "SELECT * FROM doctor_requests WHERE id = ? AND status = 'pending'",
+    [requestId],
+    (err, rows) => {
+      if (err || rows.length === 0) {
+        return res.status(404).json({ error: "Request not found" });
+      }
+
+      const doc = rows[0];
+
+      // 2️⃣ Insert into doctors table
+      db.query(
+        `
+        INSERT INTO doctors
+        (email, name, specialization, experience, address, fees, status)
+        VALUES (?, ?, ?, ?, ?, ?, 'approved')
+        `,
+        [
+          doc.email,
+          doc.name,
+          doc.specialization,
+          doc.experience,
+          doc.address,
+          doc.fees
+        ],
+        (err) => {
+          if (err) return res.status(500).json(err);
+
+          // 3️⃣ Mark request as approved (DO NOT DELETE)
+          db.query(
+            "UPDATE doctor_requests SET status = 'approved' WHERE id = ?",
+            [requestId]
+          );
+
+          res.json({ message: "Doctor approved successfully" });
+        }
+      );
+    }
+  );
+});
+
+app.put("/api/admin/reject-doctor/:id", (req, res) => {
+  db.query(
+    "UPDATE doctor_requests SET status = 'rejected' WHERE id = ?",
+    [req.params.id],
+    (err) => {
+      if (err) return res.status(500).json(err);
+      res.json({ message: "Doctor rejected" });
+    }
+  );
+});
+
+
+app.get("/api/doctor/status", (req, res) => {
+  const { email } = req.query;
+
+  if (!email) {
+    return res.status(400).json({ error: "Email required" });
+  }
+
+  // 1️⃣ Check approved doctors
+  db.query(
+    "SELECT * FROM doctors WHERE email = ?",
+    [email],
+    (err, doctors) => {
+      if (err) return res.status(500).json(err);
+
+      if (doctors.length > 0) {
+        return res.json({
+          status: "approved",
+          doctor: doctors[0]
+        });
+      }
+
+      // 2️⃣ Check doctor requests
+      db.query(
+        "SELECT status FROM doctor_requests WHERE email = ?",
+        [email],
+        (err, requests) => {
+          if (err) return res.status(500).json(err);
+
+          if (requests.length > 0) {
+            return res.json({
+              status: requests[0].status // pending / rejected
+            });
+          }
+
+          // 3️⃣ Not found
+          res.json({ status: "not_registered" });
+        }
+      );
+    }
+  );
+});
+
 
 
 
