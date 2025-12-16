@@ -6,7 +6,7 @@ import Layout from "./layout/Layout";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
-import Register from "./pages/Register";
+import DoctorsRegister from "./pages/DoctorsRegister";
 import Doctors from "./pages/Doctors";
 import DoctorDetails from "./pages/DoctorDetails";
 import BookingPage from "./pages/BookingPage";
@@ -24,7 +24,7 @@ function App() {
           <Routes>
             <Route path="/" element={<Home />} />
             <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
+            <Route path="/register" element={<DoctorsRegister />} />
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctor/:doctorId" element={<DoctorDetails />} />
             <Route path="/book-appointment" element={<BookingPage />} />

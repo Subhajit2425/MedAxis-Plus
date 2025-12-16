@@ -101,7 +101,7 @@ export default function Doctors() {
       {/* SEARCH BAR */}
       <Paper elevation={3} sx={{ p: 2, mb: 4, borderRadius: 3 }}>
         <TextField
-          label="Search by Name or Specialization"
+          label="Search by Name or Specialization or Location"
           variant="outlined"
           fullWidth
           value={searchTerm}
