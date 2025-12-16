@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import api from "../../api/api";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -22,6 +23,15 @@ import {
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function Appointment() {
+  const navigate = useNavigate();
+  const userEmail = localStorage.getItem("userEmail");
+
+  useEffect(() => {
+    if (!userEmail) {
+      navigate("/login", { replace: true });
+    }
+  }, [userEmail, navigate]);
+
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

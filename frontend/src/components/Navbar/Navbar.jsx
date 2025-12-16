@@ -44,6 +44,7 @@ export default function Navbar() {
                 color: "inherit",
                 textDecoration: "none",
               }}
+              className="profile-icon"
             >
               <AccountCircleIcon />
             </Link>

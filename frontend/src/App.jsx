@@ -19,8 +19,9 @@ import DoctorVerifyOtp from "./pages/doctors/auth/DoctorVerifyOtp";
 import DoctorRegister from "./pages/doctors/auth/DoctorRegister";
 import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
 
-import About from "./pages/public/About/About";
 import Contact from "./pages/public/Contact/Contact";
+import PrivacyPolicy from "./pages/public/Privacy/PrivacyPolicy";
+import About from "./pages/public/About/About";
 
 function App() {
   return (
@@ -45,8 +46,9 @@ function App() {
             <Route path="/doctor/register" element={<DoctorRegister />} />
             <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
 
-            <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
+            <Route path="/privacy" element={<PrivacyPolicy />} />
+            <Route path="/about" element={<About />} />            
           </Routes>
         </div>
       </Layout>

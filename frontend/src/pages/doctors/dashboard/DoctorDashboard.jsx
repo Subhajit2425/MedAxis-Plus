@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import api from "../../../api/api";
+import { useNavigate } from "react-router-dom";
 import {
   Container,
   Typography,
@@ -11,33 +12,42 @@ import {
 } from "@mui/material";
 
 export default function DoctorDashboard() {
+  const navigate = useNavigate();
+  const userEmail = localStorage.getItem("userEmail");
+
+  useEffect(() => {
+    if (!userEmail) {
+      navigate("/login", { replace: true });
+    }
+  }, [userEmail, navigate]);
+
   const email = localStorage.getItem("doctorEmail");
 
   const [status, setStatus] = useState("loading");
   const [doctor, setDoctor] = useState(null);
 
-  useEffect(() => {
-    if (!email) {
-      window.location.href = "/doctor/login";
-      return;
-    }
+  // useEffect(() => {
+  //   if (!email) {
+  //     window.location.href = "/doctor/login";
+  //     return;
+  //   }
 
-    api
-      .get("/api/doctor/status", { params: { email } })
-      .then((res) => {
-        setStatus(res.data.status);
-        setDoctor(res.data.doctor || null);
-      })
-      .catch(() => setStatus("error"));
-  }, [email]);
+  //   api
+  //     .get("/api/doctor/status", { params: { email } })
+  //     .then((res) => {
+  //       setStatus(res.data.status);
+  //       setDoctor(res.data.doctor || null);
+  //     })
+  //     .catch(() => setStatus("error"));
+  // }, [email]);
 
-  if (status === "loading") {
-    return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-        <CircularProgress />
-      </Box>
-    );
-  }
+  // if (status === "loading") {
+  //   return (
+  //     <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+  //       <CircularProgress />
+  //     </Box>
+  //   );
+  // }
 
   return (
     <Container sx={{ mt: 6 }}>
