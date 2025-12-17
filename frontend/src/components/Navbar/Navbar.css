@@ -56,3 +56,36 @@ nav {
   color: #1d4ed8;
 }
 
+.navbar-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #020B24;
+  padding: 4px;
+  transition: transform 0.2s ease;
+}
+
+
+.navbar-logo img:hover {
+  transform: scale(1.08);
+}
+
+/* LEFT GROUP (logo + text together) */
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+/* TEXT NEXT TO LOGO */
+.navbar-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.plus {
+  color: #22d3ee;
+}
