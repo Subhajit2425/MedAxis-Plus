@@ -631,6 +631,84 @@ app.get("/api/doctor/status", (req, res) => {
 });
 
 
+// -----------------------------------------------------
+// API: Get appointments for a specific doctor
+// -----------------------------------------------------
+app.get("/api/doctor/appointments", (req, res) => {
+  const doctorEmail = req.query.email;
+
+  if (!doctorEmail) {
+    return res.status(400).json({ error: "Doctor email is required" });
+  }
+
+  const sql = `
+    SELECT 
+      a.id,
+      a.first_name,
+      a.last_name,
+      a.mobile_number,
+      a.email AS user_email,
+      a.status,
+      a.created_at
+    FROM appointments a
+    JOIN doctors d ON a.doctor_id = d.id
+    WHERE d.email = ?
+    ORDER BY a.created_at DESC
+  `;
+
+  db.query(sql, [doctorEmail], (err, results) => {
+    if (err) {
+      console.error("Error fetching doctor appointments:", err);
+      return res.status(500).json({ error: "Failed to fetch appointments" });
+    }
+
+    res.json(results);
+  });
+});
+
+
+// -----------------------------------------------------
+// API: Update appointment status (approve / reject)
+// -----------------------------------------------------
+app.put("/api/doctor/appointments/:id", (req, res) => {
+  const appointmentId = req.params.id;
+  const { status } = req.body;
+  const doctorEmail = req.query.email;
+
+  // Validation
+  if (!doctorEmail) {
+    return res.status(400).json({ error: "Doctor email is required" });
+  }
+
+  if (!["approved", "rejected"].includes(status)) {
+    return res.status(400).json({ error: "Invalid status value" });
+  }
+
+  const sql = `
+    UPDATE appointments a
+    JOIN doctors d ON a.doctor_id = d.id
+    SET a.status = ?
+    WHERE a.id = ? AND d.email = ?
+  `;
+
+  db.query(sql, [status, appointmentId, doctorEmail], (err, result) => {
+    if (err) {
+      console.error("Error updating appointment status:", err);
+      return res.status(500).json({ error: "Failed to update appointment" });
+    }
+
+    if (result.affectedRows === 0) {
+      return res.status(403).json({
+        error: "Unauthorized or appointment not found"
+      });
+    }
+
+    res.json({
+      message: `Appointment ${status} successfully`
+    });
+  });
+});
+
 
 
 app.post("/api/feedback", (req, res) => {

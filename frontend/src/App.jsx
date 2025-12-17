@@ -4,6 +4,7 @@ import { Routes, Route } from "react-router-dom";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ScrollToTop from "./ScrollToTop";
 import Layout from "./layout/Layout";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 import Home from "./pages/public/Home/Home";
 import Login from "./pages/auth/Login";
@@ -18,6 +19,8 @@ import DoctorEmail from "./pages/doctors/auth/DoctorEmail";
 import DoctorVerifyOtp from "./pages/doctors/auth/DoctorVerifyOtp";
 import DoctorRegister from "./pages/doctors/auth/DoctorRegister";
 import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
+import DoctorLoginEntry from "./pages/doctors/dashboard/DoctorLoginEntry";
+import DoctorStatus from "./pages/doctors/dashboard/DoctorStatus";
 
 import Contact from "./pages/public/Contact/Contact";
 import PrivacyPolicy from "./pages/public/Privacy/PrivacyPolicy";
@@ -44,11 +47,23 @@ function App() {
             <Route path="/doctor/login" element={<DoctorEmail />} />
             <Route path="/doctor/verify" element={<DoctorVerifyOtp />} />
             <Route path="/doctor/register" element={<DoctorRegister />} />
-            <Route path="/doctor/dashboard" element={<DoctorDashboard />} />
+            <Route path="/doctor/entry" element={<DoctorLoginEntry />} />
+            <Route path="/doctor/status" element={<DoctorStatus />} />
+
 
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
-            <Route path="/about" element={<About />} />            
+            <Route path="/about" element={<About />} />
+
+            <Route
+              path="/doctor/dashboard"
+              element={
+                <ProtectedRoute>
+                  <DoctorDashboard />
+                </ProtectedRoute>
+              }
+            />
+
           </Routes>
         </div>
       </Layout>

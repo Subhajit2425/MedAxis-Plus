@@ -16,7 +16,7 @@ import {
   FaAmbulance,
   FaFemale,
   FaBone,
-  FaClinicMedical ,
+  FaClinicMedical,
   FaBaby,
   FaUtensils,
   FaMedkit,
@@ -30,11 +30,11 @@ const specialtiesData = [
   { name: "Ophthalmologist", Icon: FaEye },
   { name: "Psychiatrist", Icon: FaStethoscope },
   { name: "Gastroenterologist", Icon: FaUtensils },
-  { name: "ENT Specialist", Icon:  FaMedkit },
-  { name: "Dermatologist", Icon: FaHandHoldingMedical },  
+  { name: "ENT Specialist", Icon: FaMedkit },
+  { name: "Dermatologist", Icon: FaHandHoldingMedical },
   { name: "General Physician", Icon: FaClinicMedical },
   { name: "Gynecologist", Icon: FaFemale },
-  { name: "Pediatrician", Icon:   FaBaby },
+  { name: "Pediatrician", Icon: FaBaby },
   { name: "Orthopedic Surgeon", Icon: FaBone },
 ];
 
@@ -140,11 +140,15 @@ const Home = () => {
                 className="book-btn"
                 onClick={(e) => {
                   e.stopPropagation();
-                  navigate(
+                  if (localStorage.getItem("userEmail")) {
+                    navigate(
                       `/book-appointment?doctorId=${doc.id}&doctorName=${encodeURIComponent(
                         doc.name
                       )}`
-                    )
+                    );
+                  } else {
+                    navigate("/login");
+                  }
                 }}
               >
                 Book Appointment

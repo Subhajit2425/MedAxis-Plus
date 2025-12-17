@@ -46,7 +46,7 @@ export default function DoctorRegister() {
       });
 
       alert("Registration submitted. Your account is under verification.");
-      navigate("/doctor/dashboard", { replace: true });
+      navigate("/doctor/status", { replace: true });
     } catch (err) {
       setError("Failed to submit registration. Please try again.");
     } finally {
