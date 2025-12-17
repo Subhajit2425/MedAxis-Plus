@@ -88,6 +88,7 @@ app.get("/api/doctors/:id", (req, res) => {
     });
 });
 
+
 // -----------------------------------------------------
 // API: Fetch User Details by Email  (Used in Profile.jsx)
 // -----------------------------------------------------
@@ -113,6 +114,7 @@ app.get("/api/user/:email", (req, res) => {
         res.json(results[0]); // return the user object
     });
 });
+
 
 // -----------------------------------------------------
 // API: Update User Profile
@@ -205,8 +207,6 @@ app.post("/api/appointments", (req, res) => {
 // NEW API: User Registration/Login (Handles POST requests from LoginPage.jsx)
 // This endpoint will store data in the 'users' table
 // -----------------------------------------------------
-
-
 
 
 // API: Get all appointments (with doctor names using JOIN)
@@ -381,6 +381,7 @@ app.post("/api/verify-otp", (req, res) => {
   );
 });
 
+
 app.post("/api/doctor/send-otp", async (req, res) => {
   const { email } = req.body;
 
@@ -516,6 +517,7 @@ app.post("/api/doctor/register", (req, res) => {
     }
   );
 });
+
 
 app.get("/api/admin/pending-doctors", (req, res) => {
   db.query(
