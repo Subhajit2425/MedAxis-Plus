@@ -709,6 +709,76 @@ app.put("/api/doctor/appointments/:id", (req, res) => {
   });
 });
 
+app.get("/api/doctor/access", (req, res) => {
+  const { email } = req.query;
+
+  // 1️⃣ Not logged in
+  if (!email) {
+    return res.json({
+      loggedIn: false
+    });
+  }
+
+  // 2️⃣ Check doctor_requests table
+  const sql = `
+    SELECT status
+    FROM doctor_requests
+    WHERE email = ?
+    LIMIT 1
+  `;
+
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error("Doctor access check error:", err);
+      return res.status(500).json({
+        error: "Server error"
+      });
+    }
+
+    // 3️⃣ Logged in but NOT registered as doctor
+    if (results.length === 0) {
+      return res.json({
+        loggedIn: true,
+        registered: false
+      });
+    }
+
+    // 4️⃣ Registered doctor → return status
+    const { status } = results[0];
+
+    return res.json({
+      loggedIn: true,
+      registered: true,
+      status // 'pending' | 'approved' | 'rejected'
+    });
+  });
+});
+
+
+app.get("/api/doctor/profile", (req, res) => {
+  const { email } = req.query;
+
+  const sql = `
+    SELECT name, specialization, experience
+    FROM doctor_requests
+    WHERE email = ? AND status = 'approved'
+    LIMIT 1
+  `;
+
+  db.query(sql, [email], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).json({ error: "Server error" });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Doctor not found" });
+    }
+
+    res.json(results[0]);
+  });
+});
+
 
 
 app.post("/api/feedback", (req, res) => {

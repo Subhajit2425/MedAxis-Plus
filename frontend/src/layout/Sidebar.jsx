@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import api from "../api/api";
 import {
   Home,
   LocalHospital,
@@ -15,9 +16,43 @@ import "./Layout.css";
 export default function Sidebar() {
   const location = useLocation();
   const isAdmin = localStorage.getItem("isAdmin");
+  const navigate = useNavigate();
 
   const isActive = (path) =>
     location.pathname === path ? "active" : "";
+
+  const handleDoctorDashboard = async () => {
+    const email = localStorage.getItem("userEmail");
+
+    // 1️⃣ Not logged in
+    if (!email) {
+      navigate("/login");
+      return;
+    }
+
+    try {
+      const res = await api.get("/api/doctor/access", {
+        params: { email }
+      });
+
+      const data = res.data;
+
+      // 2️⃣ Logged in but not registered
+      if (!data.registered) {
+        navigate("/doctor/entry");
+      }
+      // 3️⃣ Registered but not approved
+      else if (data.status === "pending" || data.status === "rejected") {
+        navigate("/doctor/status");
+      }
+      // 4️⃣ Approved
+      else if (data.status === "approved") {
+        navigate("/doctor/dashboard");
+      }
+    } catch (err) {
+      console.error("Doctor dashboard access error:", err);
+    }
+  };
 
   return (
     <aside className="sidebar">
@@ -44,12 +79,13 @@ export default function Sidebar() {
         <div className="sidebar-group">
           <div className="sidebar-group-title">DOCTOR USE</div>
 
-          <Link
-            className={isActive("/doctor/dashboard")}
-            to="/doctor/dashboard"
+          <button
+            className={`sidebar-link ${isActive("/doctor/dashboard")}`}
+            onClick={handleDoctorDashboard}
           >
             <MedicalServices /> Doctor Dashboard
-          </Link>
+          </button>
+
         </div>
 
         {/* ℹ️ MORE */}

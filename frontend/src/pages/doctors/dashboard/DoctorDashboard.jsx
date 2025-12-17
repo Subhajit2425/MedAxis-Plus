@@ -33,21 +33,26 @@ export default function DoctorDashboard() {
       return;
     }
 
-    // Fetch doctor status
     api
-      .get("/api/doctor/status", { params: { email } })
+      .get("/api/doctor/access", { params: { email } })
       .then((res) => {
-        setStatus(res.data.status);
-        setDoctor(res.data.doctor || null);
+        if (!res.data.registered) {
+          setStatus("not_registered");
+          return;
+        }
 
-        // Only fetch appointments if approved
+        setStatus(res.data.status);
+
         if (res.data.status === "approved") {
+          fetchDoctorProfile();
           fetchAppointments();
         }
       })
+
       .catch(() => setStatus("error"))
       .finally(() => setLoading(false));
   }, [email, navigate]);
+
 
   const fetchAppointments = async () => {
     const res = await api.get("/api/doctor/appointments", {
@@ -55,6 +60,14 @@ export default function DoctorDashboard() {
     });
     setAppointments(res.data);
   };
+
+  const fetchDoctorProfile = async () => {
+    const res = await api.get("/api/doctor/profile", {
+      params: { email }
+    });
+    setDoctor(res.data);
+  };
+
 
   const updateAppointmentStatus = async (id, action) => {
     try {
@@ -129,6 +142,16 @@ export default function DoctorDashboard() {
     );
   }
 
+  // ✅ Approved but doctor profile not loaded yet
+  if (status === "approved" && !doctor) {
+    return (
+      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+
   // ✅ APPROVED DASHBOARD
   return (
     <Container sx={{ mt: 4 }}>
@@ -146,8 +169,8 @@ export default function DoctorDashboard() {
               </Typography>
             </Box>
             <Chip
-              label="Verified Doctor"
-              color="success"
+              label="Verified"
+              color="info"
               sx={{ ml: "auto" }}
             />
           </Stack>
@@ -187,7 +210,7 @@ export default function DoctorDashboard() {
                   <Stack direction="row" spacing={1}>
                     <Button
                       variant="contained"
-                      color="success"
+                      color="info"
                       size="small"
                       onClick={() =>
                         updateAppointmentStatus(appt.id, "approved")
