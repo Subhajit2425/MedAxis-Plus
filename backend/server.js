@@ -273,6 +273,8 @@ app.delete("/api/appointments/:id", (req, res) => {
 });
 
 
+app.options("/api/send-otp", cors());
+
 app.post("/api/send-otp", async (req, res) => {
   const { firstName, lastName, mobileNumber, email, dateOfBirth } = req.body;
 

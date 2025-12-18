@@ -45,6 +45,7 @@ export default function LoginPage() {
 
   // ✅ STEP 1: SEND OTP
   const handleSubmit = async (e) => {
+    if (status === "loading") return;
     e.preventDefault();
     setStatus("loading");
 
@@ -53,9 +54,11 @@ export default function LoginPage() {
       setOtpSent(true);
       setStatus("idle");
       alert("Verification code sent to your email");
-    } catch {
+    } catch (err) {
+      console.error(err);
       setStatus("error");
     }
+
   };
 
   // ✅ STEP 2: VERIFY OTP
