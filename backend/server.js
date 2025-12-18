@@ -38,11 +38,11 @@ const db = mysql.createConnection({
 
 
 db.connect((err) => {
-    if (err) {
-        console.log("❌ MySQL Connection Failed", err);
-        return;
-    }
-    console.log("✅ Connected to MySQL!");
+  if (err) {
+    console.log("❌ MySQL Connection Failed", err);
+    return;
+  }
+  console.log("✅ Connected to MySQL!");
 });
 
 function generateOTP() {
@@ -66,26 +66,26 @@ app.get("/api/doctors", (req, res) => {
 // API: Get single doctor by ID (Doctor Details Page)
 // -----------------------------------------------------
 app.get("/api/doctors/:id", (req, res) => {
-    const doctorId = req.params.id;
+  const doctorId = req.params.id;
 
-    const sql = `
+  const sql = `
         SELECT id, name, specialization, experience, fees, address, latitude, longitude
         FROM doctors
         WHERE id = ?
     `;
 
-    db.query(sql, [doctorId], (err, results) => {
-        if (err) {
-            console.error("Error fetching doctor:", err);
-            return res.status(500).json({ error: "Failed to fetch doctor details" });
-        }
+  db.query(sql, [doctorId], (err, results) => {
+    if (err) {
+      console.error("Error fetching doctor:", err);
+      return res.status(500).json({ error: "Failed to fetch doctor details" });
+    }
 
-        if (results.length === 0) {
-            return res.status(404).json({ error: "Doctor not found" });
-        }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "Doctor not found" });
+    }
 
-        res.json(results[0]); // return single doctor object
-    });
+    res.json(results[0]); // return single doctor object
+  });
 });
 
 
@@ -93,26 +93,26 @@ app.get("/api/doctors/:id", (req, res) => {
 // API: Fetch User Details by Email  (Used in Profile.jsx)
 // -----------------------------------------------------
 app.get("/api/user/:email", (req, res) => {
-    const userEmail = req.params.email;
+  const userEmail = req.params.email;
 
-    const sql = `
+  const sql = `
         SELECT first_name, last_name, mobile_number, email, date_of_birth
         FROM users
         WHERE email = ?
     `;
 
-    db.query(sql, [userEmail], (err, results) => {
-        if (err) {
-            console.error("Error fetching user:", err);
-            return res.status(500).json({ error: "Failed to fetch user details" });
-        }
+  db.query(sql, [userEmail], (err, results) => {
+    if (err) {
+      console.error("Error fetching user:", err);
+      return res.status(500).json({ error: "Failed to fetch user details" });
+    }
 
-        if (results.length === 0) {
-            return res.status(404).json({ error: "User not found" });
-        }
+    if (results.length === 0) {
+      return res.status(404).json({ error: "User not found" });
+    }
 
-        res.json(results[0]); // return the user object
-    });
+    res.json(results[0]); // return the user object
+  });
 });
 
 
@@ -120,12 +120,12 @@ app.get("/api/user/:email", (req, res) => {
 // API: Update User Profile
 // -----------------------------------------------------
 app.put("/api/user/:email", (req, res) => {
-    console.log("UPDATE BODY:", req.body); // 👈 ADD THIS
+  console.log("UPDATE BODY:", req.body); // 👈 ADD THIS
 
-    const userEmail = req.params.email;
-    const { firstName, lastName, mobileNumber, dateOfBirth } = req.body;
+  const userEmail = req.params.email;
+  const { firstName, lastName, mobileNumber, dateOfBirth } = req.body;
 
-    const sql = `
+  const sql = `
         UPDATE users
         SET 
             first_name = ?,
@@ -135,22 +135,22 @@ app.put("/api/user/:email", (req, res) => {
         WHERE email = ?
     `;
 
-    db.query(
-        sql,
-        [firstName, lastName, mobileNumber, dateOfBirth, userEmail],
-        (err, result) => {
-            if (err) {
-                console.error("Error updating user:", err);
-                return res.status(500).json({ error: "Failed to update profile" });
-            }
+  db.query(
+    sql,
+    [firstName, lastName, mobileNumber, dateOfBirth, userEmail],
+    (err, result) => {
+      if (err) {
+        console.error("Error updating user:", err);
+        return res.status(500).json({ error: "Failed to update profile" });
+      }
 
-            if (result.affectedRows === 0) {
-                return res.status(404).json({ error: "User not found" });
-            }
+      if (result.affectedRows === 0) {
+        return res.status(404).json({ error: "User not found" });
+      }
 
-            res.json({ message: "Profile updated successfully" });
-        }
-    );
+      res.json({ message: "Profile updated successfully" });
+    }
+  );
 });
 
 
@@ -158,18 +158,18 @@ app.put("/api/user/:email", (req, res) => {
 // API: Delete User Account
 // -----------------------------------------------------
 app.delete("/api/user/:email", (req, res) => {
-    const userEmail = req.params.email;
+  const userEmail = req.params.email;
 
-    const sql = `DELETE FROM users WHERE email = ?`;
+  const sql = `DELETE FROM users WHERE email = ?`;
 
-    db.query(sql, [userEmail], (err, result) => {
-        if (err) {
-            console.error("Error deleting user:", err);
-            return res.status(500).json({ error: "Failed to delete user" });
-        }
+  db.query(sql, [userEmail], (err, result) => {
+    if (err) {
+      console.error("Error deleting user:", err);
+      return res.status(500).json({ error: "Failed to delete user" });
+    }
 
-        res.json({ message: "User account deleted successfully" });
-    });
+    res.json({ message: "User account deleted successfully" });
+  });
 });
 
 
@@ -177,28 +177,28 @@ app.delete("/api/user/:email", (req, res) => {
 // NEW API: Book an appointment (Handles POST requests from BookingPage.jsx)
 // -----------------------------------------------------
 app.post("/api/appointments", (req, res) => {
-    // Destructure the data sent from the React form
-    const { firstName, lastName, mobileNumber, email, doctorId } = req.body;
+  // Destructure the data sent from the React form
+  const { firstName, lastName, mobileNumber, email, doctorId } = req.body;
 
-    // Define the SQL query to insert data into the 'appointments' table
-    const sqlInsert = `
+  // Define the SQL query to insert data into the 'appointments' table
+  const sqlInsert = `
         INSERT INTO appointments (first_name, last_name, mobile_number, email, doctor_id) 
         VALUES (?, ?, ?, ?, ?)
     `;
 
-    // Execute the query using parameterized values (?) to prevent SQL injection
-    db.query(sqlInsert, [firstName, lastName, mobileNumber, email, doctorId], (err, result) => {
-        if (err) {
-            console.error("Error saving appointment:", err);
-            return res.status(500).json({ error: "Failed to book appointment" });
-        }
-        
-        // Send a success response back to the React app
-        res.status(201).json({ 
-            message: "Appointment booked successfully", 
-            appointmentId: result.insertId // Provides the ID of the new booking
-        });
+  // Execute the query using parameterized values (?) to prevent SQL injection
+  db.query(sqlInsert, [firstName, lastName, mobileNumber, email, doctorId], (err, result) => {
+    if (err) {
+      console.error("Error saving appointment:", err);
+      return res.status(500).json({ error: "Failed to book appointment" });
+    }
+
+    // Send a success response back to the React app
+    res.status(201).json({
+      message: "Appointment booked successfully",
+      appointmentId: result.insertId // Provides the ID of the new booking
     });
+  });
 });
 // -----------------------------------------------------
 
@@ -325,14 +325,81 @@ app.post("/api/send-otp", async (req, res) => {
       // 📧 Send OTP
       await sendEmail(
         email,
-        "Your MedAxis+ Verification Code",
+        "MedAxis Verification Code",
         `
-        <h2>MedAxis+ Login Code</h2>
-        <p>Your verification code is:</p>
-        <h1>${otp}</h1>
-        <p>This code expires in 5 minutes.</p>
-        `
+  <div style="
+    max-width:520px;
+    margin:20px auto;
+    background:#ffffff;
+    border-radius:10px;
+    overflow:hidden;
+    font-family:Arial, Helvetica, sans-serif;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  ">
+    <div style="
+      background:#1a2a4e;
+      color:#ffffff;
+      padding:20px;
+      text-align:center;
+      font-size:22px;
+      font-weight:bold;
+    ">
+      MedAxis Email Verification
+    </div>
+
+    <div style="
+      padding:24px;
+      color:#333333;
+      font-size:15px;
+      line-height:1.6;
+    ">
+      <p>Hello,</p>
+
+      <p>
+        Use the following verification code to securely sign in to
+        <b>MedAxis</b>:
+      </p>
+
+      <div style="
+        margin:24px 0;
+        text-align:center;
+        font-size:28px;
+        letter-spacing:6px;
+        font-weight:bold;
+        color:#1a2a4e;
+      ">
+        ${otp}
+      </div>
+
+      <p>
+        This code will expire in <b>5 minutes</b>.  
+        For your security, do not share this code with anyone.
+      </p>
+
+      <p>
+        If you didn’t request this email, you can safely ignore it.
+      </p>
+
+      <br />
+      <p>
+        Regards,<br />
+        <b>MedAxis Support Team</b>
+      </p>
+    </div>
+
+    <div style="
+      padding:14px;
+      background:#f4f6f8;
+      text-align:center;
+      font-size:12px;
+      color:#777777;
+    ">
+      © ${new Date().getFullYear()} MedAxis · All rights reserved
+    </div>
+  </div>
+  `
       );
+
 
       res.json({ message: "OTP sent successfully" });
     }
@@ -403,14 +470,83 @@ app.post("/api/doctor/send-otp", async (req, res) => {
 
   await sendEmail(
     email,
-    "MedAxis+ Doctor Verification Code",
+    "MedAxis Doctor Verification Code",
     `
-    <h2>Doctor Login</h2>
-    <p>Your verification code is:</p>
-    <h1>${otp}</h1>
-    <p>Valid for 5 minutes.</p>
-    `
+  <div style="
+    max-width:520px;
+    margin:20px auto;
+    background:#ffffff;
+    border-radius:10px;
+    overflow:hidden;
+    font-family:Arial, Helvetica, sans-serif;
+    box-shadow:0 6px 18px rgba(0,0,0,0.08);
+  ">
+    <div style="
+      background:#1a2a4e;
+      color:#ffffff;
+      padding:20px;
+      text-align:center;
+      font-size:22px;
+      font-weight:bold;
+    ">
+      MedAxis · Doctor Verification
+    </div>
+
+    <div style="
+      padding:24px;
+      color:#333333;
+      font-size:15px;
+      line-height:1.6;
+    ">
+      <p>Dear Doctor,</p>
+
+      <p>
+        You are attempting to sign in to your
+        <b>MedAxis Doctor Dashboard</b>.
+        Please use the verification code below to continue.
+      </p>
+
+      <div style="
+        margin:24px 0;
+        text-align:center;
+        font-size:28px;
+        letter-spacing:6px;
+        font-weight:bold;
+        color:#1a2a4e;
+      ">
+        ${otp}
+      </div>
+
+      <p>
+        This verification code is valid for <b>5 minutes</b>.
+        For security reasons, please do not share this code with anyone.
+      </p>
+
+      <p>
+        If you did not attempt to log in, we recommend changing your
+        password or contacting MedAxis support immediately.
+      </p>
+
+      <br />
+      <p>
+        Regards,<br />
+        <b>MedAxis Support Team</b>
+      </p>
+    </div>
+
+    <div style="
+      padding:14px;
+      background:#f4f6f8;
+      text-align:center;
+      font-size:12px;
+      color:#777777;
+    ">
+      © ${new Date().getFullYear()} MedAxis · All rights reserved
+    </div>
+  </div>
+  `
   );
+
 
   res.json({ message: "OTP sent to doctor email" });
 });
