@@ -1,11 +1,14 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
-import "./Navbar.css";
 import { useEffect, useState } from "react";
+
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import MenuIcon from "@mui/icons-material/Menu";
+import "./Navbar.css";
 import logo from "../../assets/Logo512.png";
 
-export default function Navbar() {
+
+export default function Navbar({ onMenuClick }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const location = useLocation();
   const isAdmin = localStorage.getItem("isAdmin");
@@ -16,29 +19,23 @@ export default function Navbar() {
 
   return (
     <nav className="navbar">
-      {/* LEFT SIDE: LOGO + NAME */}
-      <Link to="/" className="navbar-left">
-        <img src={logo} alt="MedAxis+" className="navbar-logo" />
-        <span className="navbar-title">
-          MedAxis<span className="plus">+</span>
-        </span>
-      </Link>
+      {/* LEFT CLUSTER */}
+      <div className="navbar-left">
+        <MenuIcon
+          className="menu-icon"
+          onClick={onMenuClick}
+        />
+
+        <Link to="/" className="brand">
+          <img src={logo} alt="MedAxis+" className="navbar-logo" />
+          <span className="navbar-title">
+            MedAxis<span className="plus">+</span>
+          </span>
+        </Link>
+      </div>
 
 
       <ul className="nav-links">
-        {/* <li><Link to="/">Home</Link></li>
-        <li><Link to="/doctors">Doctors</Link></li>
-        <li><Link to="/appointments">Appointments</Link></li>
-        
-        {isAdmin && (
-          <li>
-            <Link to="/admin" className="admin-link">
-              Admin
-            </Link>
-          </li>
-        )} */}
-
-
         {/* Profile */}
         {isLoggedIn && (
           <li>

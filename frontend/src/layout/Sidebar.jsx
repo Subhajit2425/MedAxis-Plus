@@ -13,7 +13,7 @@ import {
 } from "@mui/icons-material";
 import "./Layout.css";
 
-export default function Sidebar() {
+export default function Sidebar({ open, setOpen }) {
   const location = useLocation();
   const isAdmin = localStorage.getItem("isAdmin");
   const navigate = useNavigate();
@@ -55,22 +55,22 @@ export default function Sidebar() {
   };
 
   return (
-    <aside className="sidebar">
+    <aside className={`sidebar ${open ? "open" : ""}`}>
       <nav className="sidebar-nav">
 
         {/* 🔍 EXPLORE */}
         <div className="sidebar-group">
           <div className="sidebar-group-title">EXPLORE</div>
 
-          <Link className={isActive("/")} to="/">
+          <Link className={isActive("/")} to="/" onClick={() => setOpen(false)}>
             <Home /> Home
           </Link>
 
-          <Link className={isActive("/doctors")} to="/doctors">
+          <Link className={isActive("/doctors")} to="/doctors" onClick={() => setOpen(false)}>
             <LocalHospital /> Doctors
           </Link>
 
-          <Link className={isActive("/appointments")} to="/appointments">
+          <Link className={isActive("/appointments")} to="/appointments" onClick={() => setOpen(false)}>
             <Event /> Appointments
           </Link>
         </div>
@@ -81,7 +81,10 @@ export default function Sidebar() {
 
           <button
             className={`sidebar-link ${isActive("/doctor/dashboard")}`}
-            onClick={handleDoctorDashboard}
+            onClick={() => {
+              setOpen(false);
+              handleDoctorDashboard();
+            }}
           >
             <MedicalServices /> Doctor Dashboard
           </button>
@@ -92,19 +95,19 @@ export default function Sidebar() {
         <div className="sidebar-group">
           <div className="sidebar-group-title">MORE</div>
 
-          <Link className={isActive("/contact")} to="/contact">
+          <Link className={isActive("/contact")} to="/contact" onClick={() => setOpen(false)}>
             <ContactSupport /> Contact Us
           </Link>
 
-          <Link className={isActive("/feedback")} to="/feedback">
+          <Link className={isActive("/feedback")} to="/feedback" onClick={() => setOpen(false)}>
             <Feedback /> Feedback
           </Link>
 
-          <Link className={isActive("/privacy")} to="/privacy">
+          <Link className={isActive("/privacy")} to="/privacy" onClick={() => setOpen(false)}>
             <PrivacyTip /> Privacy Policy
           </Link>
 
-          <Link className={isActive("/about")} to="/about">
+          <Link className={isActive("/about")} to="/about" onClick={() => setOpen(false)}>
             <Info /> About
           </Link>
         </div>
@@ -114,7 +117,7 @@ export default function Sidebar() {
           <div className="sidebar-group">
             <div className="sidebar-group-title">ADMIN USE</div>
 
-            <Link className={isActive("/admin")} to="/admin">
+            <Link className={isActive("/admin")} to="/admin" onClick={() => setOpen(false)}>
               <AdminPanelSettings /> Admin Dashboard
             </Link>
           </div>
