@@ -18,11 +18,6 @@ export default function Layout({ children }) {
         <Sidebar open={sidebarOpen} setOpen={setSidebarOpen} />
 
         <div className="app-main">
-          {/* Mobile menu bar */}
-          <div className="mobile-header">
-            <MenuIcon onClick={() => setSidebarOpen(true)} />
-          </div>
-
           <div className="app-content">{children}</div>
           <Footer />
         </div>

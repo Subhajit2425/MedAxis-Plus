@@ -13,12 +13,67 @@
   box-sizing: border-box;
 }
 
-.logo a {
-  font-size: 22px;
-  color: #38bdf8;
-  font-weight: bold;
+/* ================= LEFT CLUSTER ================= */
+
+.navbar-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Brand (logo + text) */
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
   text-decoration: none;
 }
+
+/* Logo */
+.navbar-logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #020B24;
+  padding: 4px;
+  transition: transform 0.2s ease;
+}
+
+.navbar-logo:hover {
+  transform: scale(1.08);
+}
+
+/* App name */
+.navbar-title {
+  font-size: 22px;
+  font-weight: bold;
+  color: #38bdf8;
+}
+
+.plus {
+  color: #22d3ee;
+}
+
+/* ================= MENU ICON ================= */
+
+/* Force hide on desktop */
+.menu-icon {
+  display: none !important;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 50%;
+}
+
+.menu-icon:hover {
+  background: rgba(255,255,255,0.08);
+}
+
+.menu-icon:active {
+  transform: scale(0.9);
+}
+
+/* ================= RIGHT SIDE ================= */
 
 .nav-links {
   list-style: none;
@@ -44,11 +99,6 @@
   transform: translateY(-1px);
 }
 
-nav {
-  margin: 0;
-  padding: 0;
-}
-
 .profile-icon {
   color: #8793ab;
 }
@@ -57,69 +107,37 @@ nav {
   color: #1d4ed8;
 }
 
-.navbar-logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: #020B24;
-  padding: 4px;
-  transition: transform 0.2s ease;
-}
+/* ================= MOBILE ONLY ================= */
 
-
-.navbar-logo img:hover {
-  transform: scale(1.08);
-}
-
-/* LEFT GROUP (logo + text together) */
-.navbar-left {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
-}
-
-/* TEXT NEXT TO LOGO */
-.navbar-title {
-  font-size: 22px;
-  font-weight: bold;
-  color: #38bdf8;
-}
-
-.plus {
-  color: #22d3ee;
-}
-
-.menu-icon {
-  display: none;
-  cursor: pointer;
-  margin-right: 6px;
-}
-
-.menu-icon:hover {
-  background: rgba(255,255,255,0.08);
-  border-radius: 50%;
-}
-
-
-/* Show menu icon only on mobile */
 @media (max-width: 900px) {
+
+  /* Show menu icon ONLY on mobile */
   .menu-icon {
-    display: block;
+    display: inline-flex !important;
+    font-size: 32px;   /* default is ~24px */
+    padding: 8px;
   }
+
+  /* Reduce navbar padding on mobile */
+  .navbar {
+    padding: 0 12px;
+  }
+
+  /* Hide text links but keep profile icon */
   .nav-links {
+    gap: 0;
+  }
+
+  .nav-links li:not(:last-child) {
     display: none;
   }
-}
 
-.menu-icon:active {
-  transform: scale(0.9);
-}
+  .profile-icon {
+    display: block;
+  }
 
-.brand {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  text-decoration: none;
+  .navbar-logo {
+    width: 40px;
+    height: 40px;
+  }
 }

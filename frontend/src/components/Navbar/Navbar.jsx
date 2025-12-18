@@ -24,6 +24,7 @@ export default function Navbar({ onMenuClick }) {
         <MenuIcon
           className="menu-icon"
           onClick={onMenuClick}
+          fontSize="large"
         />
 
         <Link to="/" className="brand">
