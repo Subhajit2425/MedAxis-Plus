@@ -1,5 +1,7 @@
 require("dotenv").config();
-const isDev = process.env.NODE_ENV !== "production";
+const isDevOtpEnabled =
+  process.env.ALLOW_DEV_OTP === "true";
+
 
 const crypto = require("crypto");
 const sendEmail = require("./utils/sendEmail");
@@ -337,7 +339,7 @@ app.post("/api/send-otp", async (req, res) => {
           }
 
           /* ================= DEVELOPMENT MODE ================= */
-          if (isDev) {
+          if (isDevOtpEnabled) {
             console.log("🟡 DEV MODE OTP:", otp);
 
             return res.json({
@@ -444,7 +446,7 @@ app.post("/api/doctor/send-otp", async (req, res) => {
         }
 
         /* ================= DEVELOPMENT MODE ================= */
-        if (isDev) {
+        if (isDevOtpEnabled) {
           console.log("🟡 DEV MODE DOCTOR OTP:", otp);
 
           return res.json({
