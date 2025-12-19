@@ -22,6 +22,7 @@ export default function LoginPage() {
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | error
+  const [isDevOtp, setIsDevOtp] = useState(false);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -50,16 +51,26 @@ export default function LoginPage() {
     setStatus("loading");
 
     try {
-      await api.post("/api/send-otp", formData);
+      const res = await api.post("/api/send-otp", formData);
+
       setOtpSent(true);
       setStatus("idle");
-      alert("Verification code sent to your email");
+
+      // ✅ DEV MODE → auto-fill OTP
+      if (res.data.devOtp) {
+        setOtp(res.data.devOtp);
+        setIsDevOtp(true);
+      } else {
+        setIsDevOtp(false);
+        alert("Verification code sent to your email");
+      }
+
     } catch (err) {
       console.error(err);
       setStatus("error");
     }
-
   };
+
 
   // ✅ STEP 2: VERIFY OTP
   const handleVerifyOtp = async () => {
@@ -172,8 +183,18 @@ export default function LoginPage() {
                   fullWidth
                   required
                 />
+
+                {isDevOtp && (
+                  <Typography
+                    variant="caption"
+                    sx={{ color: "#d97706", mt: 1, display: "block" }}
+                  >
+                    ⚠ Development mode: OTP auto-filled for testing
+                  </Typography>
+                )}
               </Box>
             )}
+
 
             {/* BUTTONS */}
             {!otpSent ? (

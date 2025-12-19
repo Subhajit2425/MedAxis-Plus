@@ -18,6 +18,8 @@ export default function DoctorEmail() {
   const [otpSent, setOtpSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [isDevOtp, setIsDevOtp] = useState(false);
+
 
   // 🔹 Pre-fill email from localStorage
   useEffect(() => {
@@ -35,14 +37,25 @@ export default function DoctorEmail() {
       setLoading(true);
       setError("");
 
-      await api.post("/api/doctor/send-otp", { email });
+      const res = await api.post("/api/doctor/send-otp", { email });
+
       setOtpSent(true);
+
+      // ✅ DEV MODE → auto-fill OTP
+      if (res.data.devOtp) {
+        setOtp(res.data.devOtp);
+        setIsDevOtp(true);
+      } else {
+        setIsDevOtp(false);
+      }
+
     } catch (err) {
       setError("Failed to send verification code. Try again.");
     } finally {
       setLoading(false);
     }
   };
+
 
   // 🔹 Verify OTP
   const handleVerifyOtp = async () => {
@@ -134,6 +147,15 @@ export default function DoctorEmail() {
               onChange={(e) => setOtp(e.target.value)}
             />
 
+            {isDevOtp && (
+              <Typography
+                variant="caption"
+                sx={{ color: "#d97706", mt: 1, display: "block" }}
+              >
+                ⚠ Development mode: OTP auto-filled for testing
+              </Typography>
+            )}
+
             <Button
               fullWidth
               variant="contained"
@@ -145,6 +167,7 @@ export default function DoctorEmail() {
             </Button>
           </>
         )}
+
       </Box>
     </Container>
   );

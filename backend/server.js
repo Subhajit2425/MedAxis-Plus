@@ -1,4 +1,5 @@
 require("dotenv").config();
+const isDev = process.env.NODE_ENV !== "production";
 
 const crypto = require("crypto");
 const sendEmail = require("./utils/sendEmail");
@@ -286,8 +287,6 @@ app.delete("/api/appointments/:id", (req, res) => {
 });
 
 
-app.options("/api/send-otp", cors());
-
 app.post("/api/send-otp", async (req, res) => {
   try {
     const { firstName, lastName, mobileNumber, email, dateOfBirth } = req.body;
@@ -308,26 +307,28 @@ app.post("/api/send-otp", async (req, res) => {
           return res.status(500).json({ error: "Database error" });
         }
 
-        const query = results.length === 0
-          ? `
-            INSERT INTO users
-            (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-          `
-          : `
-            UPDATE users SET
-              first_name = ?,
-              last_name = ?,
-              mobile_number = ?,
-              date_of_birth = ?,
-              otp_code = ?,
-              otp_expires_at = ?
-            WHERE email = ?
-          `;
+        const query =
+          results.length === 0
+            ? `
+              INSERT INTO users
+              (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
+              VALUES (?, ?, ?, ?, ?, ?, ?)
+            `
+            : `
+              UPDATE users SET
+                first_name = ?,
+                last_name = ?,
+                mobile_number = ?,
+                date_of_birth = ?,
+                otp_code = ?,
+                otp_expires_at = ?
+              WHERE email = ?
+            `;
 
-        const values = results.length === 0
-          ? [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
-          : [firstName, lastName, mobileNumber, dateOfBirth, otp, expiresAt, email];
+        const values =
+          results.length === 0
+            ? [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
+            : [firstName, lastName, mobileNumber, dateOfBirth, otp, expiresAt, email];
 
         db.query(query, values, async (err) => {
           if (err) {
@@ -335,18 +336,29 @@ app.post("/api/send-otp", async (req, res) => {
             return res.status(500).json({ error: "Database write failed" });
           }
 
+          /* ================= DEVELOPMENT MODE ================= */
+          if (isDev) {
+            console.log("🟡 DEV MODE OTP:", otp);
+
+            return res.json({
+              message: "OTP generated (development mode)",
+              devOtp: otp
+            });
+          }
+          /* ==================================================== */
+
+          /* ================= PRODUCTION MODE ================== */
           try {
             await sendEmail({
               to: email,
               subject: "MedAxis Verification Code",
               title: "MedAxis Email Verification",
               content: `
-    <p>Your verification code is:</p>
-    <div class="highlight">${otp}</div>
-    <p>Valid for 5 minutes</p>
-  `
+                <p>Your verification code is:</p>
+                <div class="highlight">${otp}</div>
+                <p>Valid for 5 minutes</p>
+              `
             });
-
 
             return res.json({ message: "OTP sent successfully" });
 
@@ -354,6 +366,7 @@ app.post("/api/send-otp", async (req, res) => {
             console.error("Email send failed:", mailErr);
             return res.status(500).json({ error: "Failed to send OTP email" });
           }
+          /* ==================================================== */
         });
       }
     );
@@ -362,6 +375,7 @@ app.post("/api/send-otp", async (req, res) => {
     return res.status(500).json({ error: "Unexpected server error" });
   }
 });
+
 
 
 
@@ -406,106 +420,83 @@ app.post("/api/verify-otp", (req, res) => {
 
 
 app.post("/api/doctor/send-otp", async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
 
-  if (!email) {
-    return res.status(400).json({ error: "Email required" });
+    if (!email) {
+      return res.status(400).json({ error: "Email required" });
+    }
+
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    // delete old OTPs
+    db.query("DELETE FROM doctor_otps WHERE email = ?", [email]);
+
+    // save new OTP
+    db.query(
+      "INSERT INTO doctor_otps (email, otp, expires_at) VALUES (?, ?, ?)",
+      [email, otp, expiresAt],
+      async (err) => {
+        if (err) {
+          console.error("Doctor OTP DB error:", err);
+          return res.status(500).json({ error: "Failed to generate OTP" });
+        }
+
+        /* ================= DEVELOPMENT MODE ================= */
+        if (isDev) {
+          console.log("🟡 DEV MODE DOCTOR OTP:", otp);
+
+          return res.json({
+            message: "OTP generated (development mode)",
+            devOtp: otp
+          });
+        }
+        /* ==================================================== */
+
+        /* ================= PRODUCTION MODE ================== */
+        try {
+          await sendEmail({
+            to: email,
+            subject: "MedAxis Doctor Verification Code",
+            title: "MedAxis · Doctor Verification",
+            content: `
+              <p>Dear Doctor,</p>
+
+              <p>
+                You are attempting to sign in to your
+                <b>MedAxis Doctor Dashboard</b>.
+              </p>
+
+              <div class="highlight">${otp}</div>
+
+              <p>
+                This verification code is valid for <b>5 minutes</b>.
+                Please do not share this code with anyone.
+              </p>
+
+              <p>
+                Regards,<br />
+                <b>MedAxis Support Team</b>
+              </p>
+            `
+          });
+
+          return res.json({ message: "OTP sent to doctor email" });
+
+        } catch (mailErr) {
+          console.error("Doctor OTP email failed:", mailErr);
+          return res.status(500).json({ error: "Failed to send OTP email" });
+        }
+        /* ==================================================== */
+      }
+    );
+  } catch (err) {
+    console.error("Doctor send OTP unexpected error:", err);
+    return res.status(500).json({ error: "Unexpected server error" });
   }
-
-  const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
-
-  // delete old OTPs
-  db.query("DELETE FROM doctor_otps WHERE email = ?", [email]);
-
-  // save new OTP
-  db.query(
-    "INSERT INTO doctor_otps (email, otp, expires_at) VALUES (?, ?, ?)",
-    [email, otp, expiresAt]
-  );
-
-  await sendEmail(
-    email,
-    "MedAxis Doctor Verification Code",
-    `
-  <div style="
-    max-width:520px;
-    margin:20px auto;
-    background:#ffffff;
-    border-radius:10px;
-    overflow:hidden;
-    font-family:Arial, Helvetica, sans-serif;
-    box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  ">
-    <div style="
-      background:#1a2a4e;
-      color:#ffffff;
-      padding:20px;
-      text-align:center;
-      font-size:22px;
-      font-weight:bold;
-    ">
-      MedAxis · Doctor Verification
-    </div>
-
-    <div style="
-      padding:24px;
-      color:#333333;
-      font-size:15px;
-      line-height:1.6;
-    ">
-      <p>Dear Doctor,</p>
-
-      <p>
-        You are attempting to sign in to your
-        <b>MedAxis Doctor Dashboard</b>.
-        Please use the verification code below to continue.
-      </p>
-
-      <div style="
-        margin:24px 0;
-        text-align:center;
-        font-size:28px;
-        letter-spacing:6px;
-        font-weight:bold;
-        color:#1a2a4e;
-      ">
-        ${otp}
-      </div>
-
-      <p>
-        This verification code is valid for <b>5 minutes</b>.
-        For security reasons, please do not share this code with anyone.
-      </p>
-
-      <p>
-        If you did not attempt to log in, we recommend changing your
-        password or contacting MedAxis support immediately.
-      </p>
-
-      <br />
-      <p>
-        Regards,<br />
-        <b>MedAxis Support Team</b>
-      </p>
-    </div>
-
-    <div style="
-      padding:14px;
-      background:#f4f6f8;
-      text-align:center;
-      font-size:12px;
-      color:#777777;
-    ">
-      © ${new Date().getFullYear()} MedAxis · All rights reserved
-    </div>
-  </div>
-  `
-  );
-
-
-  res.json({ message: "OTP sent to doctor email" });
 });
+
 
 
 app.post("/api/doctor/verify-otp", (req, res) => {
