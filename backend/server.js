@@ -336,11 +336,17 @@ app.post("/api/send-otp", async (req, res) => {
           }
 
           try {
-            await sendEmail(
-              email,
-              "MedAxis Verification Code",
-              `<h2>Your OTP: ${otp}</h2><p>Valid for 5 minutes</p>`
-            );
+            await sendEmail({
+              to: email,
+              subject: "MedAxis Verification Code",
+              title: "MedAxis Email Verification",
+              content: `
+    <p>Your verification code is:</p>
+    <div class="highlight">${otp}</div>
+    <p>Valid for 5 minutes</p>
+  `
+            });
+
 
             return res.json({ message: "OTP sent successfully" });
 
