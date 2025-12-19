@@ -187,9 +187,9 @@ export default function Appointment() {
                       fontWeight: 600,
                       color: "#fff",
                       backgroundColor:
-                        appt.status === "PENDING"
+                        appt.status === "pending"
                           ? "#f59e0b"   // yellow
-                          : appt.status === "APPROVED"
+                          : appt.status === "approved"
                             ? "#16a34a"   // green
                             : "#dc2626"   // red
                     }}
@@ -198,7 +198,7 @@ export default function Appointment() {
 
                 {/* ACTION */}
                 <TableCell align="center">
-                  {appt.status === "PENDING" && (
+                  {appt.status === "pending" && (
                     <IconButton
                       onClick={() => handleDelete(appt.id)}
                       color="error"
