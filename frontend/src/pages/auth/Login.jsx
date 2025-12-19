@@ -60,21 +60,24 @@ export default function LoginPage() {
     try {
       const res = await api.post("/api/send-otp", formData);
 
-      setOtpSent(true);
-      setStatus("idle");
-
       // ✅ DEV MODE → auto-fill OTP
       if (res.data.devOtp) {
         setOtp(res.data.devOtp);
         setIsDevOtp(true);
       } else {
         setIsDevOtp(false);
+
+        // 🔥 SHOW SNACKBAR FIRST
         setSnackbar({
           open: true,
           message: "Verification code sent to your email",
           severity: "success"
         });
       }
+
+      // 🔥 UI STATE AFTER SNACKBAR
+      setOtpSent(true);
+      setStatus("idle");
 
     } catch (err) {
       console.error(err);
@@ -85,8 +88,8 @@ export default function LoginPage() {
       });
       setStatus("idle");
     }
-
   };
+
 
 
   // ✅ STEP 2: VERIFY OTP
@@ -265,22 +268,27 @@ export default function LoginPage() {
 
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={3000}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
         onClose={(event, reason) => {
           if (reason === "clickaway") return;
           setSnackbar({ ...snackbar, open: false });
         }}
-
-        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
       >
         <Alert
           severity={snackbar.severity}
           variant="filled"
-          sx={{ borderRadius: 2 }}
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
+
     </Container>
   );
 }

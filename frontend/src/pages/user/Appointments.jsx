@@ -132,9 +132,13 @@ export default function Appointment() {
       <TableContainer
         component={Paper}
         elevation={4}
-        sx={{ borderRadius: 3, overflow: "hidden" }}
+        sx={{
+          borderRadius: 3,
+          overflowX: "auto",   // ✅ enable horizontal scroll
+          width: "100%"
+        }}
       >
-        <Table>
+        <Table sx={{ minWidth: 700 }}>
           <TableHead>
             <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
               <TableCell><b>Doctor</b></TableCell>
