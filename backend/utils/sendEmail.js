@@ -1,14 +1,8 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-const transporter = nodemailer.createTransport({
-  service: "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASS
-  }
-});
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// Email wrapper (common layout)
+// Email wrapper (same layout, unchanged)
 const emailTemplate = (title, content) => `
 <!DOCTYPE html>
 <html>
@@ -73,8 +67,8 @@ const emailTemplate = (title, content) => `
 `;
 
 module.exports = async ({ to, subject, title, content }) => {
-  await transporter.sendMail({
-    from: `"MedAxis Support" <${process.env.EMAIL_USER}>`,
+  return resend.emails.send({
+    from: "MedAxis <onboarding@resend.dev>", // works instantly
     to,
     subject,
     html: emailTemplate(title, content)
