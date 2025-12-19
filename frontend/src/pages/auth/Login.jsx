@@ -13,6 +13,7 @@ import {
   CircularProgress,
   Divider,
   Link,
+  Snackbar,
 } from "@mui/material";
 import { useNavigate, Link as RouterLink } from "react-router-dom";
 
@@ -23,6 +24,12 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [status, setStatus] = useState("idle"); // idle | loading | error
   const [isDevOtp, setIsDevOtp] = useState(false);
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -62,13 +69,23 @@ export default function LoginPage() {
         setIsDevOtp(true);
       } else {
         setIsDevOtp(false);
-        alert("Verification code sent to your email");
+        setSnackbar({
+          open: true,
+          message: "Verification code sent to your email",
+          severity: "success"
+        });
       }
 
     } catch (err) {
       console.error(err);
-      setStatus("error");
+      setSnackbar({
+        open: true,
+        message: "Failed to send verification code. Please try again.",
+        severity: "error"
+      });
+      setStatus("idle");
     }
+
   };
 
 
@@ -86,7 +103,11 @@ export default function LoginPage() {
       localStorage.setItem("userMobile", formData.mobileNumber);
       navigate("/", { replace: true });
     } catch {
-      alert("Invalid or expired verification code");
+      setSnackbar({
+        open: true,
+        message: "Invalid or expired verification code",
+        severity: "error"
+      });
       setStatus("idle");
     }
   };
@@ -211,7 +232,7 @@ export default function LoginPage() {
                 variant="contained"
                 fullWidth
                 onClick={handleVerifyOtp}
-                disabled={status === "loading"}
+                disabled={status === "loading" || otp.length !== 6}
               >
                 {status === "loading" ? <CircularProgress size={24} /> : "Verify & Login"}
               </Button>
@@ -241,6 +262,25 @@ export default function LoginPage() {
 
         </CardContent>
       </Card>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={3000}
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ borderRadius: 2 }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
