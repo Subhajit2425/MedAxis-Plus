@@ -1,6 +1,5 @@
 require("dotenv").config();
-const isDevOtpEnabled =
-  process.env.ALLOW_DEV_OTP === "true";
+const isDevOtpEnabled = process.env.ALLOW_DEV_OTP;
 
 
 const crypto = require("crypto");
