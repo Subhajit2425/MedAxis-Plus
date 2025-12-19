@@ -289,139 +289,72 @@ app.delete("/api/appointments/:id", (req, res) => {
 app.options("/api/send-otp", cors());
 
 app.post("/api/send-otp", async (req, res) => {
-  const { firstName, lastName, mobileNumber, email, dateOfBirth } = req.body;
+  try {
+    const { firstName, lastName, mobileNumber, email, dateOfBirth } = req.body;
 
-  const otp = generateOTP();
-  const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-
-  db.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-    async (err, results) => {
-      if (err) {
-        console.error("OTP error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
-
-      // 🆕 NEW USER → create account
-      if (results.length === 0) {
-        db.query(
-          `
-          INSERT INTO users
-          (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?)
-          `,
-          [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
-        );
-      }
-      // 🔁 EXISTING USER → update profile + OTP
-      else {
-        db.query(
-          `
-          UPDATE users
-          SET 
-            first_name = ?,
-            last_name = ?,
-            mobile_number = ?,
-            date_of_birth = ?,
-            otp_code = ?,
-            otp_expires_at = ?
-          WHERE email = ?
-          `,
-          [
-            firstName,
-            lastName,
-            mobileNumber,
-            dateOfBirth,
-            otp,
-            expiresAt,
-            email
-          ]
-        );
-      }
-
-      // 📧 Send OTP
-      await sendEmail(
-        email,
-        "MedAxis Verification Code",
-        `
-  <div style="
-    max-width:520px;
-    margin:20px auto;
-    background:#ffffff;
-    border-radius:10px;
-    overflow:hidden;
-    font-family:Arial, Helvetica, sans-serif;
-    box-shadow:0 6px 18px rgba(0,0,0,0.08);
-  ">
-    <div style="
-      background:#1a2a4e;
-      color:#ffffff;
-      padding:20px;
-      text-align:center;
-      font-size:22px;
-      font-weight:bold;
-    ">
-      MedAxis Email Verification
-    </div>
-
-    <div style="
-      padding:24px;
-      color:#333333;
-      font-size:15px;
-      line-height:1.6;
-    ">
-      <p>Hello,</p>
-
-      <p>
-        Use the following verification code to securely sign in to
-        <b>MedAxis</b>:
-      </p>
-
-      <div style="
-        margin:24px 0;
-        text-align:center;
-        font-size:28px;
-        letter-spacing:6px;
-        font-weight:bold;
-        color:#1a2a4e;
-      ">
-        ${otp}
-      </div>
-
-      <p>
-        This code will expire in <b>5 minutes</b>.  
-        For your security, do not share this code with anyone.
-      </p>
-
-      <p>
-        If you didn’t request this email, you can safely ignore it.
-      </p>
-
-      <br />
-      <p>
-        Regards,<br />
-        <b>MedAxis Support Team</b>
-      </p>
-    </div>
-
-    <div style="
-      padding:14px;
-      background:#f4f6f8;
-      text-align:center;
-      font-size:12px;
-      color:#777777;
-    ">
-      © ${new Date().getFullYear()} MedAxis · All rights reserved
-    </div>
-  </div>
-  `
-      );
-
-
-      res.json({ message: "OTP sent successfully" });
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
     }
-  );
+
+    const otp = generateOTP();
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+
+    db.query(
+      "SELECT * FROM users WHERE email = ?",
+      [email],
+      async (err, results) => {
+        if (err) {
+          console.error("DB select error:", err);
+          return res.status(500).json({ error: "Database error" });
+        }
+
+        const query = results.length === 0
+          ? `
+            INSERT INTO users
+            (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+          `
+          : `
+            UPDATE users SET
+              first_name = ?,
+              last_name = ?,
+              mobile_number = ?,
+              date_of_birth = ?,
+              otp_code = ?,
+              otp_expires_at = ?
+            WHERE email = ?
+          `;
+
+        const values = results.length === 0
+          ? [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
+          : [firstName, lastName, mobileNumber, dateOfBirth, otp, expiresAt, email];
+
+        db.query(query, values, async (err) => {
+          if (err) {
+            console.error("DB insert/update error:", err);
+            return res.status(500).json({ error: "Database write failed" });
+          }
+
+          try {
+            await sendEmail(
+              email,
+              "MedAxis Verification Code",
+              `<h2>Your OTP: ${otp}</h2><p>Valid for 5 minutes</p>`
+            );
+
+            return res.json({ message: "OTP sent successfully" });
+
+          } catch (mailErr) {
+            console.error("Email send failed:", mailErr);
+            return res.status(500).json({ error: "Failed to send OTP email" });
+          }
+        });
+      }
+    );
+  } catch (e) {
+    console.error("Unexpected OTP error:", e);
+    return res.status(500).json({ error: "Unexpected server error" });
+  }
 });
 
 
@@ -429,42 +362,41 @@ app.post("/api/send-otp", async (req, res) => {
 app.post("/api/verify-otp", (req, res) => {
   const { email, otp } = req.body;
 
-  db.query(
-    "SELECT * FROM users WHERE email = ?",
-    [email],
-    (err, results) => {
-      if (err || results.length === 0) {
-        return res.status(400).json({ error: "Invalid user" });
-      }
-
-      const user = results[0];
-
-      if (!user.otp_code || !user.otp_expires_at) {
-        return res.status(400).json({ error: "OTP not requested" });
-      }
-
-      if (
-        user.otp_code !== otp ||
-        new Date(user.otp_expires_at) < new Date()
-      ) {
-        return res.status(400).json({ error: "Invalid or expired OTP" });
-      }
-
-      db.query(
-        "UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE email = ?",
-        [email]
-      );
-
-      res.json({
-        message: "Login successful",
-        user: {
-          email: user.email,
-          firstName: user.first_name
-        }
-      });
+  db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
+    if (err) {
+      console.error("Verify OTP DB error:", err);
+      return res.status(500).json({ error: "Database error" });
     }
-  );
+
+    if (results.length === 0) {
+      return res.status(400).json({ error: "Invalid user" });
+    }
+
+    const user = results[0];
+
+    if (!user.otp_code || !user.otp_expires_at) {
+      return res.status(400).json({ error: "OTP not requested" });
+    }
+
+    if (user.otp_code !== otp || new Date(user.otp_expires_at) < new Date()) {
+      return res.status(400).json({ error: "Invalid or expired OTP" });
+    }
+
+    db.query(
+      "UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE email = ?",
+      [email]
+    );
+
+    res.json({
+      message: "Login successful",
+      user: {
+        email: user.email,
+        firstName: user.first_name
+      }
+    });
+  });
 });
+
 
 
 app.post("/api/doctor/send-otp", async (req, res) => {
