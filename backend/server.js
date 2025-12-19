@@ -721,9 +721,9 @@ app.get("/api/doctor/status", (req, res) => {
 // API: Get appointments for a specific doctor
 // -----------------------------------------------------
 app.get("/api/doctor/appointments", (req, res) => {
-  const doctorEmail = req.query.email;
+  const { email, status = "pending" } = req.query;
 
-  if (!doctorEmail) {
+  if (!email) {
     return res.status(400).json({ error: "Doctor email is required" });
   }
 
@@ -739,10 +739,11 @@ app.get("/api/doctor/appointments", (req, res) => {
     FROM appointments a
     JOIN doctors d ON a.doctor_id = d.id
     WHERE d.email = ?
+      AND a.status = ?
     ORDER BY a.created_at DESC
   `;
 
-  db.query(sql, [doctorEmail], (err, results) => {
+  db.query(sql, [email, status], (err, results) => {
     if (err) {
       console.error("Error fetching doctor appointments:", err);
       return res.status(500).json({ error: "Failed to fetch appointments" });

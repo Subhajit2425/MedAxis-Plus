@@ -142,6 +142,7 @@ export default function Appointment() {
               <TableCell><b>Mobile</b></TableCell>
               <TableCell><b>Email</b></TableCell>
               <TableCell><b>Date</b></TableCell>
+              <TableCell align="center"><b>Status</b></TableCell>
               <TableCell align="center"><b>Action</b></TableCell>
             </TableRow>
           </TableHead>
@@ -177,14 +178,36 @@ export default function Appointment() {
                   {new Date(appt.created_at).toLocaleDateString()}
                 </TableCell>
 
+                {/* STATUS */}
                 <TableCell align="center">
-                  <IconButton
-                    onClick={() => handleDelete(appt.id)}
-                    color="error"
-                  >
-                    <DeleteIcon />
-                  </IconButton>
+                  <Chip
+                    label={appt.status}
+                    size="small"
+                    sx={{
+                      fontWeight: 600,
+                      color: "#fff",
+                      backgroundColor:
+                        appt.status === "PENDING"
+                          ? "#f59e0b"   // yellow
+                          : appt.status === "APPROVED"
+                            ? "#16a34a"   // green
+                            : "#dc2626"   // red
+                    }}
+                  />
                 </TableCell>
+
+                {/* ACTION */}
+                <TableCell align="center">
+                  {appt.status === "PENDING" && (
+                    <IconButton
+                      onClick={() => handleDelete(appt.id)}
+                      color="error"
+                    >
+                      <DeleteIcon />
+                    </IconButton>
+                  )}
+                </TableCell>
+
               </TableRow>
             ))}
           </TableBody>
