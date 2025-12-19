@@ -10,20 +10,33 @@ const app = express();
 
 const cors = require("cors");
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://subhajit2425.github.io",
+  "https://subhajit2425.github.io/MedAxis-Plus"
+];
+
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://subhajit2425.github.io"
-  ],
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.log("Blocked by CORS:", origin);
+      callback(new Error("CORS not allowed"));
+    }
+  },
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-// IMPORTANT: handle preflight requests
+
+
+// Handle preflight requests
 app.options("*", cors());
 
 app.use(express.json());
+
 
 
 // MySQL Connection
