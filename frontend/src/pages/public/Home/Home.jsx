@@ -2,6 +2,11 @@ import React, { useEffect, useState } from "react";
 import "./Home.css";
 import { useNavigate } from "react-router-dom";
 
+import {
+  Alert,
+  Snackbar,
+} from "@mui/material";
+
 // Icons
 import {
   FaTooth,
@@ -52,6 +57,20 @@ const Home = () => {
   const navigate = useNavigate();
   const [heroSearch, setHeroSearch] = useState("");
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+    setTimeout(() => {
+      setSnackbar({ open: true, message, severity });
+    }, 50);
+  };
+
+
   const handleSpecialization = (name) => {
     navigate(`/doctors?specialization=${encodeURIComponent(name)}`);
   };
@@ -61,7 +80,7 @@ const Home = () => {
   };
 
   const handleServices = (service) => {
-    alert(`${service} service is unavailable right now !`);
+    showSnackbar(`${service} service is unavailable right now !`, "warning");
   };
 
   return (
@@ -192,6 +211,29 @@ const Home = () => {
           ))}
         </div>
       </section>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </div>
   );
 };

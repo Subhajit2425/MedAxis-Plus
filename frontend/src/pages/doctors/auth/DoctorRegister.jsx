@@ -6,7 +6,8 @@ import {
   Button,
   Typography,
   Box,
-  Alert
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import api from "../../../api/api";
 
@@ -24,6 +25,20 @@ export default function DoctorRegister() {
     address: "",
     fees: ""
   });
+
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+    setTimeout(() => {
+      setSnackbar({ open: true, message, severity });
+    }, 50);
+  };
+
 
   // 🔐 Safety: block direct access
   useEffect(() => {
@@ -45,10 +60,11 @@ export default function DoctorRegister() {
         ...form
       });
 
-      alert("Registration submitted. Your account is under verification.");
+
+      showSnackbar("Registration submitted. Your account is under verification.", "success");
       navigate("/doctor/status", { replace: true });
     } catch (err) {
-      setError("Failed to submit registration. Please try again.");
+      showSnackbar("Failed to submit registration. Please try again.", "success");
     } finally {
       setSubmitting(false);
     }
@@ -93,6 +109,29 @@ export default function DoctorRegister() {
           {submitting ? "Submitting..." : "Submit for Verification"}
         </Button>
       </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
