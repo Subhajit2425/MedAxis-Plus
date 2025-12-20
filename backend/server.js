@@ -68,43 +68,7 @@ function generateOTP() {
 }
 
 
-// API: Get all doctors
-app.get("/api/doctors", (req, res) => {
-  db.query("SELECT * FROM doctors", (err, results) => {
-    if (err) {
-      console.error("❌ SQL ERROR:", err);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(results);
-  });
-});
-
-
-// -----------------------------------------------------
-// API: Get single doctor by ID (Doctor Details Page)
-// -----------------------------------------------------
-app.get("/api/doctors/:id", (req, res) => {
-  const doctorId = req.params.id;
-
-  const sql = `
-        SELECT id, name, specialization, experience, fees, address, latitude, longitude
-        FROM doctors
-        WHERE id = ?
-    `;
-
-  db.query(sql, [doctorId], (err, results) => {
-    if (err) {
-      console.error("Error fetching doctor:", err);
-      return res.status(500).json({ error: "Failed to fetch doctor details" });
-    }
-
-    if (results.length === 0) {
-      return res.status(404).json({ error: "Doctor not found" });
-    }
-
-    res.json(results[0]); // return single doctor object
-  });
-});
+app.use("/api/doctors", require("./routes/doctor.routes"));
 
 
 // -----------------------------------------------------
@@ -903,6 +867,95 @@ app.get("/api/doctor/profile", (req, res) => {
 
     res.json(results[0]);
   });
+});
+
+
+app.post("/api/doctor/availability", (req, res) => {
+  const doctorId = req.user.id; // from auth middleware
+  const { dayOfWeek, startTime, endTime, slotDuration } = req.body;
+
+  if (
+    dayOfWeek === undefined ||
+    !startTime ||
+    !endTime ||
+    !slotDuration
+  ) {
+    return res.status(400).json({ error: "Missing fields" });
+  }
+
+  const sql = `
+    INSERT INTO doctor_availability
+    (doctor_id, day_of_week, start_time, end_time, slot_duration)
+    VALUES (?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE
+      start_time = VALUES(start_time),
+      end_time = VALUES(end_time),
+      slot_duration = VALUES(slot_duration)
+  `;
+
+  db.query(
+    sql,
+    [doctorId, dayOfWeek, startTime, endTime, slotDuration],
+    (err) => {
+      if (err) return res.status(500).json(err);
+
+      res.json({ message: "Availability saved successfully" });
+    }
+  );
+});
+
+app.get("/api/doctor/:doctorId/slots", (req, res) => {
+  const { doctorId } = req.params;
+  const { date } = req.query;
+
+  if (!date) {
+    return res.status(400).json({ error: "Date is required" });
+  }
+
+  const dayOfWeek = new Date(date).getDay();
+
+  db.query(
+    `
+    SELECT * FROM doctor_availability
+    WHERE doctor_id = ? AND day_of_week = ?
+    `,
+    [doctorId, dayOfWeek],
+    (err, availability) => {
+      if (err) return res.status(500).json(err);
+      if (availability.length === 0) {
+        return res.json([]);
+      }
+
+      const { start_time, end_time, slot_duration } = availability[0];
+
+      const allSlots = generateSlots(
+        start_time,
+        end_time,
+        slot_duration
+      );
+
+      db.query(
+        `
+        SELECT start_time FROM appointments
+        WHERE doctor_id = ?
+        AND appointment_date = ?
+        AND status IN ('pending','confirmed')
+        `,
+        [doctorId, date],
+        (err, booked) => {
+          if (err) return res.status(500).json(err);
+
+          const bookedTimes = booked.map(b => b.start_time);
+
+          const availableSlots = allSlots.filter(
+            slot => !bookedTimes.includes(slot.start_time)
+          );
+
+          res.json(availableSlots);
+        }
+      );
+    }
+  );
 });
 
 
