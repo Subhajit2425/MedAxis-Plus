@@ -30,6 +30,10 @@ export default function LoginPage() {
     severity: "success" // success | error | warning | info
   });
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -68,11 +72,8 @@ export default function LoginPage() {
         setIsDevOtp(false);
 
         // 🔥 SHOW SNACKBAR FIRST
-        setSnackbar({
-          open: true,
-          message: "Verification code sent to your email",
-          severity: "success"
-        });
+        
+        showSnackbar("Verification code sent to your email", "success");
       }
 
       // 🔥 UI STATE AFTER SNACKBAR
@@ -81,11 +82,8 @@ export default function LoginPage() {
 
     } catch (err) {
       console.error(err);
-      setSnackbar({
-        open: true,
-        message: "Failed to send verification code. Please try again.",
-        severity: "error"
-      });
+      
+      showSnackbar("Failed to send verification code. Please try again.", "error");
       setStatus("idle");
     }
   };
@@ -94,6 +92,7 @@ export default function LoginPage() {
 
   // ✅ STEP 2: VERIFY OTP
   const handleVerifyOtp = async () => {
+    if (status === "loading") return;
     setStatus("loading");
 
     try {
@@ -106,11 +105,7 @@ export default function LoginPage() {
       localStorage.setItem("userMobile", formData.mobileNumber);
       navigate("/", { replace: true });
     } catch {
-      setSnackbar({
-        open: true,
-        message: "Invalid or expired verification code",
-        severity: "error"
-      });
+      showSnackbar("Invalid or expired verification code", "error");
       setStatus("idle");
     }
   };
