@@ -11,7 +11,8 @@ import {
   Alert,
   IconButton,
   Button,
-  Divider
+  Divider,
+  Snackbar,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import SaveIcon from "@mui/icons-material/Save";
@@ -21,12 +22,21 @@ import { useNavigate } from "react-router-dom";
 export default function Profile() {
   const navigate = useNavigate();
 
+  const email = localStorage.getItem("userEmail");
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
   const [status, setStatus] = useState("loading"); // loading | success | error
   const [saving, setSaving] = useState(false);
 
-  const email = localStorage.getItem("userEmail");
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
 
   useEffect(() => {
     if (!email) {
@@ -60,18 +70,18 @@ export default function Profile() {
       await api.put(
         `/api/user/${encodeURIComponent(email)}`,
         {
-          firstName: user.firstName,
-          lastName: user.lastName,
-          mobileNumber: user.mobileNumber,
+          firstName: user.firstName.trim(),
+          lastName: user.lastName.trim(),
+          mobileNumber: user.mobileNumber.trim(),
           dateOfBirth: user.dateOfBirth
         }
       );
 
       setEditMode(false);
-      alert("Profile updated successfully");
+      showSnackbar("Profile updated successfully", "success");
     } catch (err) {
       console.error(err);
-      alert("Failed to update profile");
+      showSnackbar("Failed to update profile. Please try again.", "error");
     } finally {
       setSaving(false);
     }
@@ -118,7 +128,7 @@ export default function Profile() {
             </Box>
 
             <IconButton onClick={() => setEditMode(!editMode)}>
-              {editMode ? <SaveIcon /> : <EditIcon />}
+              <EditIcon />
             </IconButton>
           </Box>
 
@@ -181,11 +191,11 @@ export default function Profile() {
               variant="contained"
               fullWidth
               sx={{ mt: 3 }}
-              
+
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? "Saving..." : "Save"}
+              {saving ? <CircularProgress size={22} /> : "Save"}
             </Button>
           )}
 
@@ -201,6 +211,29 @@ export default function Profile() {
           </Button>
         </CardContent>
       </Card>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
