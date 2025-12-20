@@ -148,9 +148,12 @@ export default function DoctorDashboard() {
   // ✅ Approved but doctor profile not loaded yet
   if (status === "approved" && !doctor) {
     return (
-      <Box sx={{ display: "flex", justifyContent: "center", mt: 10 }}>
-        <CircularProgress />
-      </Box>
+      <Container sx={{ textAlign: "center", mt: 8 }}>
+        <CircularProgress size={40} />
+        <Typography sx={{ mt: 2 }} color="text.secondary">
+          Loading doctor dashboard…
+        </Typography>
+      </Container>
     );
   }
 

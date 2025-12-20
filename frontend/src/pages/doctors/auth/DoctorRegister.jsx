@@ -65,7 +65,7 @@ export default function DoctorRegister() {
       showSnackbar("Registration submitted. Your account is under verification.", "success");
       navigate("/doctor/status", { replace: true });
     } catch (err) {
-      showSnackbar("Failed to submit registration. Please try again.", "success");
+      showSnackbar("Failed to submit registration. Please try again.", "error");
     } finally {
       setSubmitting(false);
     }
