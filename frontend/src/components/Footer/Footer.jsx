@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Facebook, Twitter, Instagram, LinkedIn } from "@mui/icons-material";
+import { Link } from "react-router-dom";
 
 export default function Footer() {
   const [showFooter, setShowFooter] = useState(false);
@@ -92,19 +93,21 @@ export default function Footer() {
           <h4 style={{ color: "#dfe6e9", marginBottom: "15px" }}>
             Quick Links
           </h4>
-          <a href="/doctors" style={linkStyle}>Find a Doctor</a>
-          <a href="/appointments" style={linkStyle}>My Appointments</a>
-          <a href="/about" style={linkStyle}>About</a>
-          <a href="/contact" style={linkStyle}>Contact</a>
+
+          <Link to="/doctors" style={linkStyle}>Find a Doctor</Link>
+          <Link to="/appointments" style={linkStyle}>My Appointments</Link>
+          <Link to="/about" style={linkStyle}>About</Link>
+          <Link to="/contact" style={linkStyle}>Contact</Link>
         </div>
+
 
         {/* Column 3 */}
         <div style={columnStyle}>
           <h4 style={{ color: "#dfe6e9", marginBottom: "15px" }}>
             Contact Us
           </h4>
-          <p style={{ color: "#dfe6e9"}}>Email: support@medaxis.com</p>
-          <p style={{ color: "#dfe6e9"}}>Phone: +91 9876543210</p>
+          <p style={{ color: "#dfe6e9" }}>Email: support@medaxis.com</p>
+          <p style={{ color: "#dfe6e9" }}>Phone: +91 9876543210</p>
 
           <div style={{ marginTop: "12px" }}>
             <Facebook
