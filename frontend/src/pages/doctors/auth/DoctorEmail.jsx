@@ -7,6 +7,7 @@ import {
   Box,
   Alert,
   Snackbar,
+  CircularProgress,
 } from "@mui/material";
 import api from "../../../api/api";
 import { useNavigate } from "react-router-dom";
@@ -104,7 +105,7 @@ export default function DoctorEmail() {
         showSnackbar("Your account is under verification. Please wait for approval.", "info");
       }
     } catch (err) {
-      showSnackbar("Invalid or expired verification code", "success");
+      showSnackbar("Invalid or expired verification code", "error");
     } finally {
       setLoading(false);
     }
@@ -143,10 +144,15 @@ export default function DoctorEmail() {
             variant="contained"
             onClick={handleSendOtp}
             disabled={loading}
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, height: 48 }}
           >
-            Send Verification Code
+            {loading ? (
+              <CircularProgress size={24} />
+            ) : (
+              "Send Verification Code"
+            )}
           </Button>
+
         )}
 
         {/* OTP Section */}
@@ -174,10 +180,15 @@ export default function DoctorEmail() {
               variant="contained"
               onClick={handleVerifyOtp}
               disabled={loading}
-              sx={{ mt: 2 }}
+              sx={{ mt: 2, height: 48 }}
             >
-              Verify & Continue
+              {loading ? (
+                <CircularProgress size={24} />
+              ) : (
+                "Verify & Continue"
+              )}
             </Button>
+
           </>
         )}
 
