@@ -5,7 +5,8 @@ import {
   Button,
   Typography,
   Box,
-  Alert
+  Alert,
+  Snackbar,
 } from "@mui/material";
 import api from "../../../api/api";
 import { useNavigate } from "react-router-dom";
@@ -20,6 +21,18 @@ export default function DoctorEmail() {
   const [error, setError] = useState("");
   const [isDevOtp, setIsDevOtp] = useState(false);
 
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
+
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar(prev => ({ ...prev, open: false }));
+    setTimeout(() => {
+      setSnackbar({ open: true, message, severity });
+    }, 50);
+  };
 
   // 🔹 Pre-fill email from localStorage
   useEffect(() => {
@@ -50,7 +63,7 @@ export default function DoctorEmail() {
       }
 
     } catch (err) {
-      setError("Failed to send verification code. Try again.");
+      showSnackbar("Failed to send verification code. Try again.", "error");
     } finally {
       setLoading(false);
     }
@@ -60,7 +73,7 @@ export default function DoctorEmail() {
   // 🔹 Verify OTP
   const handleVerifyOtp = async () => {
     if (!otp) {
-      setError("Please enter verification code");
+      showSnackbar("Please enter verification code.", "error");
       return;
     }
 
@@ -88,10 +101,10 @@ export default function DoctorEmail() {
       }
 
       if (res.data.action === "PENDING") {
-        setError("Your account is under verification. Please wait for approval.");
+        showSnackbar("Your account is under verification. Please wait for approval.", "info");
       }
     } catch (err) {
-      setError("Invalid or expired verification code");
+      showSnackbar("Invalid or expired verification code", "success");
     } finally {
       setLoading(false);
     }
@@ -169,6 +182,29 @@ export default function DoctorEmail() {
         )}
 
       </Box>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }

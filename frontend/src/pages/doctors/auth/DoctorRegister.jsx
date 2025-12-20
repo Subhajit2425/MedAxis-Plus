@@ -5,6 +5,7 @@ import {
   TextField,
   Button,
   Typography,
+  CircularProgress,
   Box,
   Alert,
   Snackbar,
@@ -106,7 +107,7 @@ export default function DoctorRegister() {
           disabled={submitting}
           onClick={submit}
         >
-          {submitting ? "Submitting..." : "Submit for Verification"}
+          {submitting ? <CircularProgress size={24} /> : "Submit"}
         </Button>
       </Box>
 
