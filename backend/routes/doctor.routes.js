@@ -3,11 +3,10 @@ const router = express.Router();
 
 const doctorController = require("../controllers/doctor.controller");
 
-// GET all doctors
-router.get("/", doctorController.getAllDoctors);
+// ✅ STATIC ROUTES FIRST
 
-// GET single doctor by ID
-router.get("/:id", doctorController.getDoctorById);
+// Get all doctors
+router.get("/", doctorController.getAllDoctors);
 
 // Doctor registration
 router.post("/register", doctorController.registerDoctor);
@@ -24,5 +23,8 @@ router.put("/appointments/:id", doctorController.updateAppointmentStatus);
 // Availability & slots
 router.post("/availability", doctorController.saveAvailability);
 router.get("/:doctorId/slots", doctorController.getAvailableSlots);
+
+// ✅ DYNAMIC ROUTE LAST
+router.get("/:id", doctorController.getDoctorById);
 
 module.exports = router;
