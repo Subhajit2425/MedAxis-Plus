@@ -35,6 +35,7 @@ app.use(express.json());
 
 /* ---------------- ROUTES ---------------- */
 app.use("/api/doctor", require("./routes/doctor.routes"));
+app.use("/api/doctors", require("./routes/doctor.routes"));
 app.use("/api/user", require("./routes/user.routes"));
 app.use("/api/appointments", require("./routes/appointment.routes"));
 app.use("/api/admin", require("./routes/admin.routes"));
