@@ -13,9 +13,13 @@ import {
   Button,
   Divider,
   Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
-import SaveIcon from "@mui/icons-material/Save";
 import LogoutIcon from "@mui/icons-material/Logout";
 import { useNavigate } from "react-router-dom";
 
@@ -37,6 +41,22 @@ export default function Profile() {
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
+
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const handleLogoutClick = () => {
+    setConfirmOpen(true);
+  };
+
+  const confirmLogout = async () => {
+    try {
+      localStorage.clear();
+      navigate("/", { replace: true });
+    } finally {
+      setConfirmOpen(false);
+    }
+  };
+
 
   useEffect(() => {
     if (!email) {
@@ -85,13 +105,6 @@ export default function Profile() {
     } finally {
       setSaving(false);
     }
-  };
-
-
-  const handleLogout = () => {
-    if (!window.confirm("Are you sure you want to logout ?")) return;
-    localStorage.clear();
-    navigate("/", { replace: true });
   };
 
 
@@ -205,7 +218,7 @@ export default function Profile() {
             fullWidth
             sx={{ mt: 2 }}
             startIcon={<LogoutIcon />}
-            onClick={handleLogout}
+            onClick={handleLogoutClick}
           >
             Logout
           </Button>
@@ -234,6 +247,27 @@ export default function Profile() {
           {snackbar.message}
         </Alert>
       </Snackbar>
+
+
+      <Dialog open={confirmOpen} onClose={() => !saving && setConfirmOpen(false)}>
+        <DialogTitle>Confirm Logout</DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            You will be logged out of your account. Do you want to continue?
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>
+            Cancel
+          </Button>
+
+          <Button color="error" variant="contained" onClick={confirmLogout}>
+            Logout
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }
