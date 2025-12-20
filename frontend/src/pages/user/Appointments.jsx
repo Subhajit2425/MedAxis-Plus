@@ -17,7 +17,13 @@ import {
   CardContent,
   IconButton,
   Box,
-  Chip
+  Chip,
+  Snackbar,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogContentText,
+  DialogActions,
 } from "@mui/material";
 
 import DeleteIcon from "@mui/icons-material/Delete";
@@ -36,24 +42,51 @@ export default function Appointment() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Are you sure you want to cancel this appointment?")) {
-      return;
-    }
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success" // success | error | warning | info
+  });
 
+  const showSnackbar = (message, severity = "success") => {
+    setSnackbar({ open: true, message, severity });
+  };
+
+
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  const handleDeleteClick = (id) => {
+    setDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+
+  const confirmDelete = async () => {
+  setDeleting(true);
+  try {
     const userEmail = localStorage.getItem("userEmail");
 
-    api
-      .delete(`/api/appointments/${id}`, {
-        params: { email: userEmail }
-      })
-      .then(() => {
-        setAppointments((prev) => prev.filter((item) => item.id !== id));
-      })
-      .catch(() => {
-        alert("Failed to cancel appointment");
-      });
-  };
+    await api.delete(`/api/appointments/${deleteId}`, {
+      params: { email: userEmail }
+    });
+
+    setAppointments(prev =>
+      prev.filter(item => item.id !== deleteId)
+    );
+
+    showSnackbar("Appointment canceled successfully", "success");
+  } catch {
+    showSnackbar("Failed to cancel appointment", "error");
+  } finally {
+    setDeleting(false);
+    setConfirmOpen(false);
+    setDeleteId(null);
+  }
+};
+
+
 
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
@@ -204,11 +237,13 @@ export default function Appointment() {
                 <TableCell align="center">
                   {appt.status === "pending" && (
                     <IconButton
-                      onClick={() => handleDelete(appt.id)}
+                      onClick={() => handleDeleteClick(appt.id)}
                       color="error"
+                      disabled={confirmOpen}
                     >
                       <DeleteIcon />
                     </IconButton>
+
                   )}
                 </TableCell>
 
@@ -218,6 +253,49 @@ export default function Appointment() {
 
         </Table>
       </TableContainer>
+
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={5000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        onClose={(event, reason) => {
+          if (reason === "clickaway") return;
+          setSnackbar({ ...snackbar, open: false });
+        }}
+        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+      >
+        <Alert
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{
+            borderRadius: 2,
+            boxShadow: 6,
+            width: "100%"
+          }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+
+      <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)}>
+        <DialogTitle>Confirm Delete</DialogTitle>
+
+        <DialogContent>
+          <DialogContentText>
+            This appointment to the doctor will be canceled. Do you want to continue?
+          </DialogContentText>
+        </DialogContent>
+
+        <DialogActions>
+          <Button onClick={() => setConfirmOpen(false)}>
+            Cancel
+          </Button>
+
+          <Button color="error" variant="contained" onClick={confirmDelete}>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 }

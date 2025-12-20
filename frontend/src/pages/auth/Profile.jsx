@@ -51,7 +51,7 @@ export default function Profile() {
   const confirmLogout = async () => {
     try {
       localStorage.clear();
-      navigate("/", { replace: true });
+      window.location.href = "/";
     } finally {
       setConfirmOpen(false);
     }
