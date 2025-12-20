@@ -569,35 +569,74 @@ app.post("/api/doctor/register", (req, res) => {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  // 🔍 Prevent duplicate requests
   db.query(
-    "SELECT id FROM doctor_requests WHERE email = ?",
+    "SELECT id, status FROM doctor_requests WHERE email = ?",
     [email],
     (err, rows) => {
       if (err) return res.status(500).json(err);
 
+      // 🟡 Case 1: Record exists
       if (rows.length > 0) {
-        return res
-          .status(400)
-          .json({ error: "Doctor request already exists" });
-      }
+        const { status } = rows[0];
 
-      // ✅ Insert into doctor_requests (NOT doctors)
-      db.query(
-        `
-        INSERT INTO doctor_requests
-        (email, name, specialization, experience, address, fees, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'pending')
-        `,
-        [email, name, specialization, experience, address, fees],
-        (err) => {
-          if (err) return res.status(500).json(err);
-
-          res.json({
-            message: "Registration submitted. Await admin approval."
+        // ⛔ Pending → block
+        if (status === "pending") {
+          return res.status(400).json({
+            error: "Your request is already pending approval"
           });
         }
-      );
+
+        // ⛔ Approved → block
+        if (status === "approved") {
+          return res.status(400).json({
+            error: "You are already an approved doctor"
+          });
+        }
+
+        // ✅ Rejected → allow reapply (UPDATE)
+        if (status === "rejected") {
+          db.query(
+            `
+            UPDATE doctor_requests
+            SET 
+              name = ?,
+              specialization = ?,
+              experience = ?,
+              address = ?,
+              fees = ?,
+              status = 'pending'
+            WHERE email = ?
+            `,
+            [name, specialization, experience, address, fees, email],
+            (err) => {
+              if (err) return res.status(500).json(err);
+
+              return res.json({
+                message: "Reapplication submitted. Await admin approval."
+              });
+            }
+          );
+        }
+      }
+
+      // 🟢 Case 2: No record → INSERT
+      else {
+        db.query(
+          `
+          INSERT INTO doctor_requests
+          (email, name, specialization, experience, address, fees, status)
+          VALUES (?, ?, ?, ?, ?, ?, 'pending')
+          `,
+          [email, name, specialization, experience, address, fees],
+          (err) => {
+            if (err) return res.status(500).json(err);
+
+            res.json({
+              message: "Registration submitted. Await admin approval."
+            });
+          }
+        );
+      }
     }
   );
 });
