@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import api from "../../../api/api"; // adjust path if needed
+
 
 import {
   Container,
@@ -13,6 +15,7 @@ import {
   Box,
   Alert,
   Divider,
+  CircularProgress,
 } from "@mui/material";
 import EmailIcon from "@mui/icons-material/Email";
 import PhoneIcon from "@mui/icons-material/Phone";
@@ -33,11 +36,7 @@ export default function Contact() {
 
 
   const [status, setStatus] = useState("idle"); // idle | success | error
-
-  if (!userEmail) {
-    navigate("/login");
-    return null;
-  }
+  const [loading, setLoading] = useState(false);
 
   const [formData, setFormData] = useState({
     name: "",
@@ -47,11 +46,13 @@ export default function Contact() {
   });
 
   const handleChange = (e) => {
+    setStatus("idle");
     setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
 
     try {
       await api.post("/api/feedback", {
@@ -62,15 +63,11 @@ export default function Contact() {
       });
 
       setStatus("success");
-
-      setFormData({
-        name: "",
-        email: "",
-        subject: "",
-        message: "",
-      });
+      setFormData({ name: "", subject: "", message: "" });
     } catch (err) {
       setStatus("error");
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -221,8 +218,9 @@ export default function Contact() {
                         fontWeight: 600,
                         borderRadius: 2,
                       }}
-                    >
-                      Send Message
+                      disabled={loading}
+                    >                   
+                      {loading ? <CircularProgress size={24} /> : "Send Message"}
                     </Button>
                   </Grid>
                 </Grid>

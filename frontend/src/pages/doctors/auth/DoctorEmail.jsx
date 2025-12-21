@@ -51,7 +51,7 @@ export default function DoctorEmail() {
       setLoading(true);
       setError("");
 
-      const res = await api.post("/api/doctor/send-otp", { email });
+      const res = await api.post("/api/doctor/auth/send-otp", { email });
 
       setOtpSent(true);
 
@@ -82,7 +82,7 @@ export default function DoctorEmail() {
       setLoading(true);
       setError("");
 
-      const res = await api.post("/api/doctor/verify-otp", {
+      const res = await api.post("/api/doctor/auth/verify-otp", {
         email,
         otp
       });

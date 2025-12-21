@@ -22,18 +22,18 @@ export default function LoginPage() {
 
   const [otpSent, setOtpSent] = useState(false);
   const [otp, setOtp] = useState("");
-  const [status, setStatus] = useState("idle"); // idle | loading | error
+  const [status, setStatus] = useState("idle"); // idle | loading
   const [isDevOtp, setIsDevOtp] = useState(false);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" // success | error | warning | info
+    severity: "success"
   });
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
-
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -43,7 +43,7 @@ export default function LoginPage() {
     dateOfBirth: "",
   });
 
-  // 🔥 Redirect if already logged in
+  // 🔒 Redirect if already logged in
   useEffect(() => {
     const userEmail = localStorage.getItem("userEmail");
     if (userEmail) {
@@ -57,53 +57,72 @@ export default function LoginPage() {
 
   // ✅ STEP 1: SEND OTP
   const handleSubmit = async (e) => {
-    if (status === "loading") return;
     e.preventDefault();
+    if (status === "loading") return;
+
+    // 🔐 Basic validations
+    if (!/^[6-9]\d{9}$/.test(formData.mobileNumber)) {
+      showSnackbar("Enter a valid 10-digit mobile number", "warning");
+      return;
+    }
+
     setStatus("loading");
 
     try {
-      const res = await api.post("/api/send-otp", formData);
+      const res = await api.post("/api/auth/send-otp", formData);
 
-      // ✅ DEV MODE → auto-fill OTP
-      if (res.data.devOtp) {
+      // DEV MODE → auto-fill OTP
+      if (res.data?.devOtp) {
         setOtp(res.data.devOtp);
         setIsDevOtp(true);
+        showSnackbar("You are using the Development mode.", "info");
       } else {
         setIsDevOtp(false);
-
-        // 🔥 SHOW SNACKBAR FIRST
-        
         showSnackbar("Verification code sent to your email", "success");
       }
 
-      // 🔥 UI STATE AFTER SNACKBAR
       setOtpSent(true);
       setStatus("idle");
 
     } catch (err) {
       console.error(err);
-      
       showSnackbar("Failed to send verification code. Please try again.", "error");
       setStatus("idle");
     }
   };
 
-
-
   // ✅ STEP 2: VERIFY OTP
   const handleVerifyOtp = async () => {
     if (status === "loading") return;
+
+    if (otp.length !== 6) {
+      showSnackbar("Verification code must be of 6 digits.", "warning");
+      return;
+    }
+
     setStatus("loading");
 
     try {
-      await api.post("/api/verify-otp", {
+      await api.post("/api/auth/verify-otp", {
         email: formData.email,
         otp,
       });
 
+      // ✅ Persist minimal auth data
       localStorage.setItem("userEmail", formData.email);
-      localStorage.setItem("userMobile", formData.mobileNumber);
+
+      // 🧹 Clear sensitive state
+      setOtp("");
+      setFormData({
+        firstName: "",
+        lastName: "",
+        mobileNumber: "",
+        email: "",
+        dateOfBirth: "",
+      });
+
       navigate("/", { replace: true });
+
     } catch {
       showSnackbar("Invalid or expired verification code", "error");
       setStatus("idle");
@@ -121,12 +140,6 @@ export default function LoginPage() {
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
             If this email is already registered, we’ll log you into your existing account.
           </Typography>
-
-          {status === "error" && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              Something went wrong. Please try again.
-            </Alert>
-          )}
 
           <form onSubmit={handleSubmit}>
             <Box mb={2}>
@@ -157,6 +170,8 @@ export default function LoginPage() {
               <TextField
                 label="Mobile Number"
                 name="mobileNumber"
+                type="tel"
+                inputProps={{ maxLength: 10 }}
                 fullWidth
                 required
                 value={formData.mobileNumber}
@@ -201,6 +216,7 @@ export default function LoginPage() {
                   onChange={(e) => setOtp(e.target.value)}
                   fullWidth
                   required
+                  disabled={isDevOtp}
                 />
 
                 {isDevOtp && (
@@ -214,8 +230,7 @@ export default function LoginPage() {
               </Box>
             )}
 
-
-            {/* BUTTONS */}
+            {/* ACTION BUTTON */}
             {!otpSent ? (
               <Button
                 type="submit"
@@ -230,13 +245,14 @@ export default function LoginPage() {
                 variant="contained"
                 fullWidth
                 onClick={handleVerifyOtp}
-                disabled={status === "loading" || otp.length !== 6}
+                disabled={status === "loading"}
               >
                 {status === "loading" ? <CircularProgress size={24} /> : "Verify & Login"}
               </Button>
             )}
           </form>
-          {/* ───────── Doctor Login Option ───────── */}
+
+          {/* Doctor Login */}
           <Divider sx={{ my: 3 }} />
 
           <Typography variant="body2" align="center" color="text.secondary">
@@ -248,11 +264,7 @@ export default function LoginPage() {
               component={RouterLink}
               to="/doctor/login"
               underline="hover"
-              sx={{
-                fontWeight: 600,
-                fontSize: "0.95rem",
-                cursor: "pointer",
-              }}
+              sx={{ fontWeight: 600 }}
             >
               Login as a Doctor
             </Link>
@@ -261,29 +273,25 @@ export default function LoginPage() {
         </CardContent>
       </Card>
 
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
         onClose={(event, reason) => {
           if (reason === "clickaway") return;
           setSnackbar({ ...snackbar, open: false });
         }}
-        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+        sx={{ zIndex: 2000 }}
       >
         <Alert
           severity={snackbar.severity}
           variant="filled"
-          sx={{
-            borderRadius: 2,
-            boxShadow: 6,
-            width: "100%"
-          }}
+          sx={{ borderRadius: 2, boxShadow: 6, width: "100%" }}
         >
           {snackbar.message}
         </Alert>
       </Snackbar>
-
     </Container>
   );
 }
