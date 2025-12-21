@@ -307,43 +307,68 @@ exports.updateAppointmentStatus = (req, res) => {
 
 /**
  * GET /api/doctor/access
+ * Single source of truth for doctor access
  */
 exports.checkDoctorAccess = (req, res) => {
   const { email } = req.query;
 
   if (!email) {
-    return res.json({ loggedIn: false });
+    return res.json({ authenticated: false });
   }
 
+  // ✅ FIRST: check approved doctors table
   db.query(
-    "SELECT status FROM doctor_requests WHERE email = ? LIMIT 1",
+    "SELECT id FROM doctors WHERE email = ? LIMIT 1",
     [email],
-    (err, results) => {
+    (err, doctors) => {
       if (err) {
-        console.error("Doctor access check error:", err);
+        console.error("Doctor access error:", err);
         return res.status(500).json({ error: "Server error" });
       }
 
-      if (results.length === 0) {
+      if (doctors.length > 0) {
         return res.json({
-          loggedIn: true,
-          registered: false
+          authenticated: true,
+          registered: true,
+          requestStatus: "approved",
+          canAccessBooking: true,
         });
       }
 
-      res.json({
-        loggedIn: true,
-        registered: true,
-        status: results[0].status
-      });
+      // ⬇️ fallback to request table
+      db.query(
+        "SELECT status FROM doctor_requests WHERE email = ? LIMIT 1",
+        [email],
+        (err, requests) => {
+          if (err) {
+            console.error("Doctor access error:", err);
+            return res.status(500).json({ error: "Server error" });
+          }
+
+          if (requests.length === 0) {
+            return res.json({
+              authenticated: true,
+              registered: false,
+            });
+          }
+
+          return res.json({
+            authenticated: true,
+            registered: true,
+            requestStatus: requests[0].status,
+            canAccessBooking: false,
+          });
+        }
+      );
     }
   );
 };
 
 
+
 /**
  * GET /api/doctor/profile
- * Fetch approved doctor profile
+ * Fetch approved doctor profile (SOURCE: doctors table)
  */
 exports.getDoctorProfile = (req, res) => {
   const { email } = req.query;
@@ -358,10 +383,11 @@ exports.getDoctorProfile = (req, res) => {
     SELECT 
       name,
       specialization,
-      experience
-    FROM doctor_requests
+      experience,
+      fees,
+      address
+    FROM doctors
     WHERE email = ?
-      AND status = 'approved'
     LIMIT 1
   `;
 
@@ -375,11 +401,10 @@ exports.getDoctorProfile = (req, res) => {
 
     if (results.length === 0) {
       return res.status(404).json({
-        error: "Doctor not found or not approved",
+        error: "Doctor not found",
       });
     }
 
-    // ✅ STANDARDIZED RESPONSE SHAPE
     res.json({
       doctor: results[0],
     });
