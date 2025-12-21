@@ -2,7 +2,7 @@ const db = require("../config/db");
 const generateOTP = require("../utils/otp");
 const sendEmail = require("../utils/sendEmail");
 
-const isDevOtpEnabled = process.env.NODE_ENV !== "production";
+const isDevOtpEnabled = process.env.ENABLE_DEV_OTP === "true";
 
 /**
  * POST /api/doctor/auth/send-otp

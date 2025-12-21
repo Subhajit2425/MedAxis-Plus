@@ -75,7 +75,7 @@ export default function LoginPage() {
       if (res.data?.devOtp) {
         setOtp(res.data.devOtp);
         setIsDevOtp(true);
-        showSnackbar("You are using the Development mode.", "info");
+        showSnackbar("OTP auto-filled (development mode)", "info");
       } else {
         setIsDevOtp(false);
         showSnackbar("Verification code sent to your email", "success");

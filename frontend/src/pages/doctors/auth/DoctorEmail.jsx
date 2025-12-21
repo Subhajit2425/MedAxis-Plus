@@ -59,8 +59,10 @@ export default function DoctorEmail() {
       if (res.data.devOtp) {
         setOtp(res.data.devOtp);
         setIsDevOtp(true);
+        showSnackbar("OTP auto-filled (development mode)", "info");
       } else {
         setIsDevOtp(false);
+        showSnackbar("Verification code sent to your email", "success");
       }
 
     } catch (err) {
@@ -164,6 +166,7 @@ export default function DoctorEmail() {
               margin="normal"
               value={otp}
               onChange={(e) => setOtp(e.target.value)}
+              disabled={isDevOtp}
             />
 
             {isDevOtp && (
