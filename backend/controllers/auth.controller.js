@@ -2,7 +2,7 @@ const db = require("../config/db");
 const generateOTP = require("../utils/otp");
 const sendEmail = require("../utils/sendEmail");
 
-const isDevOtpEnabled = process.env.NODE_ENV === "development";
+const isDevOtpEnabled = process.env.ENABLE_DEV_OTP === "true";
 
 /**
  * POST /api/auth/send-otp
@@ -69,7 +69,7 @@ exports.sendOtp = async (req, res) => {
           if (isDevOtpEnabled) {
             console.log("🟡 DEV MODE OTP:", otp);
             return res.json({
-              message: "OTP generated (development mode)",
+              message: "OTP generated (dev mode)",
               devOtp: otp
             });
           }
