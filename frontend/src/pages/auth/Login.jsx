@@ -110,6 +110,7 @@ export default function LoginPage() {
 
       // ✅ Persist minimal auth data
       localStorage.setItem("userEmail", formData.email);
+      localStorage.setItem("userMobile", formData.mobile);
 
       // 🧹 Clear sensitive state
       setOtp("");
