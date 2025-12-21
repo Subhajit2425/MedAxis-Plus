@@ -36,24 +36,34 @@ export default function Sidebar({ open, setOpen }) {
 
     try {
       const res = await api.get("/api/doctor/access", {
-        params: { email }
+        params: { email },
       });
 
-      const data = res.data;
+      const {
+        registered,
+        requestStatus,
+        canAccessBooking,
+      } = res.data;
 
-      if (!data.registered) {
+      if (!registered) {
         navigate("/doctor/entry");
-      } else if (data.status === "pending" || data.status === "rejected") {
+      } else if (requestStatus === "pending" || requestStatus === "rejected") {
         navigate("/doctor/status");
-      } else if (data.status === "approved") {
+      } else if (canAccessBooking) {
+        // ✅ approved doctor
         navigate("/doctor/dashboard");
+      } else {
+        // fallback safety
+        navigate("/doctor/status");
       }
 
       closeSidebar();
     } catch (err) {
       console.error("Doctor dashboard access error:", err);
+      closeSidebar();
     }
   };
+
 
   return (
     <>
