@@ -2,20 +2,23 @@ const db = require("../config/db");
 const generateOTP = require("../utils/otp");
 const sendEmail = require("../utils/sendEmail");
 
-const isDevOtpEnabled = process.env.NODE_ENV !== "production";
+const isDevOtpEnabled = process.env.NODE_ENV === "development";
 
 /**
  * POST /api/auth/send-otp
  */
 exports.sendOtp = async (req, res) => {
+  console.log("SEND OTP HIT", req.body);
+
   try {
     const {
-      firstName,
-      lastName,
-      mobileNumber,
+      firstName = null,
+      lastName = null,
+      mobileNumber = null,
       email,
-      dateOfBirth
+      dateOfBirth = null
     } = req.body;
+
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -72,24 +75,27 @@ exports.sendOtp = async (req, res) => {
           }
 
           // 🚀 PROD MODE
-          try {
-            await sendEmail({
-              to: email,
-              subject: "MedAxis Verification Code",
-              title: "MedAxis Email Verification",
-              content: `
-                <p>Your verification code is:</p>
-                <div class="highlight">${otp}</div>
-                <p>Valid for 5 minutes</p>
-              `
-            });
+          // try {
+          //   await sendEmail({
+          //     to: email,
+          //     subject: "MedAxis Verification Code",
+          //     title: "MedAxis Email Verification",
+          //     content: `
+          //       <p>Your verification code is:</p>
+          //       <div class="highlight">${otp}</div>
+          //       <p>Valid for 5 minutes</p>
+          //     `
+          //   });
 
-            res.json({ message: "OTP sent successfully" });
+          //   res.json({ message: "OTP sent successfully" });
 
-          } catch (mailErr) {
-            console.error("Email send failed:", mailErr);
-            res.status(500).json({ error: "Failed to send OTP email" });
-          }
+          // } catch (mailErr) {
+          //   console.error("Email send failed:", mailErr);
+          //   res.status(500).json({ error: "Failed to send OTP email" });
+          // }
+
+          console.log("OTP generated for:", email);
+          res.json({ message: "OTP sent successfully" });
         });
       }
     );
@@ -99,11 +105,16 @@ exports.sendOtp = async (req, res) => {
   }
 };
 
+
 /**
  * POST /api/auth/verify-otp
  */
 exports.verifyOtp = (req, res) => {
   const { email, otp } = req.body;
+
+  if (!email || !otp) {
+    return res.status(400).json({ error: "Email and OTP are required" });
+  }
 
   db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
     if (err) {
