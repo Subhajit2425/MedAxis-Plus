@@ -1,124 +1,208 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from "react";
 import api from "../../api/api";
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { Container, Card, CardContent, Typography, TextField, Button, Box, Alert, CircularProgress } from '@mui/material';
+import { useSearchParams, useNavigate } from "react-router-dom";
+import {
+  Container,
+  Card,
+  CardContent,
+  Typography,
+  TextField,
+  Button,
+  Box,
+  Alert,
+  CircularProgress,
+  Grid,
+} from "@mui/material";
 
 export default function BookingPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  const doctorId = searchParams.get('doctorId');
-  const doctorName = searchParams.get('doctorName') || 'Selected Doctor';
+  const doctorId = searchParams.get("doctorId");
+  const doctorName = searchParams.get("doctorName") || "Selected Doctor";
+
+  const [appointmentDate, setAppointmentDate] = useState("");
+  const [slots, setSlots] = useState([]);
+  const [selectedSlot, setSelectedSlot] = useState(null);
 
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    mobileNumber: localStorage.getItem("userMobile") || '',
-    email: localStorage.getItem("userEmail") || '',
-    doctorId: doctorId,
+    first_name: "",
+    last_name: "",
+    mobile_number: localStorage.getItem("userMobile") || "",
+    email: localStorage.getItem("userEmail") || "",
   });
 
-  const [status, setStatus] = useState('idle'); // 'idle', 'loading', 'success', 'error'
+  const [status, setStatus] = useState("idle"); // idle | loading | success | error
+  const [slotLoading, setSlotLoading] = useState(false);
 
   useEffect(() => {
-    if (!doctorId) {
-      // Redirect if no doctor ID is provided in the URL
-      navigate('/doctors');
-    }
+    if (!doctorId) navigate("/doctors");
   }, [doctorId, navigate]);
 
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
-  };
+  // 🔹 Fetch slots when date changes
+  useEffect(() => {
+    if (!appointmentDate) return;
+
+    const fetchSlots = async () => {
+      setSlotLoading(true);
+      setSelectedSlot(null);
+
+      try {
+        const res = await api.get(
+          `/api/availability/doctor/${doctorId}/slots`,
+          { params: { date: appointmentDate } }
+        );
+        setSlots(res.data.slots || []);
+      } catch (err) {
+        console.error("Slot fetch error:", err);
+        setSlots([]);
+      } finally {
+        setSlotLoading(false);
+      }
+    };
+
+    fetchSlots();
+  }, [appointmentDate, doctorId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setStatus('loading');
+
+    if (!selectedSlot) {
+      alert("Please select a time slot");
+      return;
+    }
+
+    setStatus("loading");
 
     try {
-      // Send the data to your back-end API endpoint
-      const response = await api.post(
-        `/api/appointments`,
-        formData
-      );
+      await api.post("/api/appointments", {
+        doctor_id: doctorId,
+        appointment_date: appointmentDate,
+        start_time: selectedSlot.start_time,
+        end_time: selectedSlot.end_time,
+        ...formData,
+      });
 
-      console.log('Appointment booked:', response.data);
-      setStatus('success');
-
-      // Optionally redirect the user after success
-      setTimeout(() => navigate('/appointments'), 1500); 
-
-    } catch (error) {
-      console.error('Error booking appointment:', error);
-      setStatus('error');
+      setStatus("success");
+      setTimeout(() => navigate("/appointments"), 1500);
+    } catch (err) {
+      console.error("Booking error:", err);
+      setStatus("error");
     }
   };
 
   return (
-    <Container maxWidth="sm" style={{ marginTop: "40px" }}>
+    <Container maxWidth="sm" sx={{ mt: 5 }}>
       <Card elevation={4}>
         <CardContent>
-          <Typography variant="h5" component="h1" gutterBottom>
-            Book an Appointment
+          <Typography variant="h5" gutterBottom>
+            Book Appointment
           </Typography>
           <Typography variant="h6" color="primary" gutterBottom>
-            {`With ${doctorName}`}
+            With {doctorName}
           </Typography>
 
-          {status === 'success' && <Alert severity="success">Appointment successfully booked!</Alert>}
-          {status === 'error' && <Alert severity="error">Failed to book appointment. Please try again.</Alert>}
+          {status === "success" && (
+            <Alert severity="success">Appointment booked successfully</Alert>
+          )}
+          {status === "error" && (
+            <Alert severity="error">Booking failed. Try again.</Alert>
+          )}
 
           <form onSubmit={handleSubmit}>
+            {/* Date Picker */}
+            <Box mb={2}>
+              <TextField
+                type="date"
+                label="Appointment Date"
+                fullWidth
+                required
+                InputLabelProps={{ shrink: true }}
+                value={appointmentDate}
+                onChange={(e) => setAppointmentDate(e.target.value)}
+              />
+            </Box>
+
+            {/* Slots */}
+            {slotLoading && <CircularProgress size={24} />}
+            {!slotLoading && appointmentDate && (
+              <Grid container spacing={1} mb={2}>
+                {slots.length === 0 && (
+                  <Typography>No slots available</Typography>
+                )}
+                {slots.map((slot, idx) => (
+                  <Grid item xs={6} key={idx}>
+                    <Button
+                      fullWidth
+                      variant={
+                        selectedSlot?.start_time === slot.start_time
+                          ? "contained"
+                          : "outlined"
+                      }
+                      disabled={!slot.available}
+                      onClick={() => setSelectedSlot(slot)}
+                    >
+                      {slot.start_time} - {slot.end_time}
+                    </Button>
+                  </Grid>
+                ))}
+              </Grid>
+            )}
+
+            {/* User Details */}
             <Box mb={2}>
               <TextField
                 label="First Name"
-                name="firstName"
                 fullWidth
                 required
-                value={formData.firstName}
-                onChange={handleChange}
+                value={formData.first_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, first_name: e.target.value })
+                }
               />
             </Box>
+
             <Box mb={2}>
               <TextField
                 label="Last Name"
-                name="lastName"
                 fullWidth
                 required
-                value={formData.lastName}
-                onChange={handleChange}
+                value={formData.last_name}
+                onChange={(e) =>
+                  setFormData({ ...formData, last_name: e.target.value })
+                }
               />
             </Box>
+
             <Box mb={2}>
               <TextField
                 label="Mobile Number"
-                name="mobileNumber"
                 fullWidth
-                required
-                type="tel"
-                value={formData.mobileNumber}
                 disabled
+                value={formData.mobile_number}
               />
             </Box>
+
             <Box mb={2}>
               <TextField
                 label="Email"
-                name="email"
                 fullWidth
-                required
-                type="email"
-                value={formData.email}
                 disabled
+                value={formData.email}
               />
             </Box>
+
             <Button
               type="submit"
-              variant="contained"
-              color="primary"
               fullWidth
-              disabled={status === 'loading'}
+              variant="contained"
+              disabled={status === "loading"}
             >
-              {status === 'loading' ? <CircularProgress size={24} /> : 'Book Appointment'}
+              {status === "loading" ? (
+                <CircularProgress size={24} />
+              ) : (
+                "Confirm Booking"
+              )}
             </Button>
           </form>
         </CardContent>
@@ -126,4 +210,3 @@ export default function BookingPage() {
     </Container>
   );
 }
-

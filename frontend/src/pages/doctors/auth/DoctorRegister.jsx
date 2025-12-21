@@ -16,7 +16,6 @@ export default function DoctorRegister() {
   const { state } = useLocation();
   const navigate = useNavigate();
 
-  const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const [form, setForm] = useState({
@@ -24,24 +23,27 @@ export default function DoctorRegister() {
     specialization: "",
     experience: "",
     address: "",
-    fees: ""
+    fees: "",
+
+    // 🔹 Availability fields
+    start_time: "",
+    end_time: "",
+    slot_duration: 15,
+    break_start: "",
+    break_end: "",
   });
 
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" // success | error | warning | info
+    severity: "success",
   });
 
   const showSnackbar = (message, severity = "success") => {
-    setSnackbar(prev => ({ ...prev, open: false }));
-    setTimeout(() => {
-      setSnackbar({ open: true, message, severity });
-    }, 50);
+    setSnackbar({ open: true, message, severity });
   };
 
-
-  // 🔐 Safety: block direct access
+  // 🔐 Block direct access
   useEffect(() => {
     if (!state?.email) {
       navigate("/doctor/login", { replace: true });
@@ -52,17 +54,33 @@ export default function DoctorRegister() {
     setForm({ ...form, [e.target.name]: e.target.value });
 
   const submit = async () => {
-    setError("");
     setSubmitting(true);
 
     try {
       await api.post("/api/doctor/register", {
         email: state.email,
-        ...form
+
+        // doctor profile
+        name: form.name,
+        specialization: form.specialization,
+        experience: form.experience,
+        address: form.address,
+        fees: form.fees,
+
+        // 🔹 availability (used by slot generator)
+        availability: {
+          start_time: form.start_time,
+          end_time: form.end_time,
+          slot_duration: Number(form.slot_duration),
+          break_start: form.break_start || null,
+          break_end: form.break_end || null,
+        },
       });
 
-
-      showSnackbar("Registration submitted. Your account is under verification.", "success");
+      showSnackbar(
+        "Registration submitted. Your account is under verification.",
+        "success"
+      );
       navigate("/doctor/status", { replace: true });
     } catch (err) {
       showSnackbar("Failed to submit registration. Please try again.", "error");
@@ -79,31 +97,75 @@ export default function DoctorRegister() {
         </Typography>
 
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Complete your profile. Our team will verify your details before approval.
+          Complete your profile and set your availability.
         </Typography>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2 }}>
-            {error}
-          </Alert>
-        )}
+        {/* Basic Details */}
+        <TextField fullWidth margin="normal" label="Name" name="name" onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Specialization" name="specialization" onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Experience (years)" name="experience" onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Address" name="address" onChange={handleChange} />
+        <TextField fullWidth margin="normal" label="Fees" name="fees" onChange={handleChange} />
 
-        {Object.keys(form).map((field) => (
-          <TextField
-            key={field}
-            fullWidth
-            margin="normal"
-            name={field}
-            label={field.toUpperCase()}
-            value={form[field]}
-            onChange={handleChange}
-          />
-        ))}
+        {/* 🔹 Availability Section */}
+        <Typography variant="h6" sx={{ mt: 3 }}>
+          Availability
+        </Typography>
+
+        <TextField
+          fullWidth
+          margin="normal"
+          type="time"
+          label="Work Start Time"
+          name="start_time"
+          InputLabelProps={{ shrink: true }}
+          onChange={handleChange}
+        />
+
+        <TextField
+          fullWidth
+          margin="normal"
+          type="time"
+          label="Work End Time"
+          name="end_time"
+          InputLabelProps={{ shrink: true }}
+          onChange={handleChange}
+        />
+
+        <TextField
+          fullWidth
+          margin="normal"
+          type="number"
+          label="Slot Duration (minutes)"
+          name="slot_duration"
+          value={form.slot_duration}
+          onChange={handleChange}
+        />
+
+        <TextField
+          fullWidth
+          margin="normal"
+          type="time"
+          label="Break Start (optional)"
+          name="break_start"
+          InputLabelProps={{ shrink: true }}
+          onChange={handleChange}
+        />
+
+        <TextField
+          fullWidth
+          margin="normal"
+          type="time"
+          label="Break End (optional)"
+          name="break_end"
+          InputLabelProps={{ shrink: true }}
+          onChange={handleChange}
+        />
 
         <Button
           fullWidth
           variant="contained"
-          sx={{ mt: 2 }}
+          sx={{ mt: 3 }}
           disabled={submitting}
           onClick={submit}
         >
@@ -114,22 +176,10 @@ export default function DoctorRegister() {
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
-        onClose={(event, reason) => {
-          if (reason === "clickaway") return;
-          setSnackbar({ ...snackbar, open: false });
-        }}
-        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            borderRadius: 2,
-            boxShadow: 6,
-            width: "100%"
-          }}
-        >
+        <Alert severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
