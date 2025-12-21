@@ -343,28 +343,46 @@ exports.checkDoctorAccess = (req, res) => {
 
 /**
  * GET /api/doctor/profile
+ * Fetch approved doctor profile
  */
 exports.getDoctorProfile = (req, res) => {
   const { email } = req.query;
 
+  if (!email) {
+    return res.status(400).json({
+      error: "Email is required",
+    });
+  }
+
   const sql = `
-    SELECT name, specialization, experience
+    SELECT 
+      name,
+      specialization,
+      experience
     FROM doctor_requests
-    WHERE email = ? AND status = 'approved'
+    WHERE email = ?
+      AND status = 'approved'
     LIMIT 1
   `;
 
   db.query(sql, [email], (err, results) => {
     if (err) {
-      console.error(err);
-      return res.status(500).json({ error: "Server error" });
+      console.error("Doctor profile fetch error:", err);
+      return res.status(500).json({
+        error: "Server error",
+      });
     }
 
     if (results.length === 0) {
-      return res.status(404).json({ error: "Doctor not found" });
+      return res.status(404).json({
+        error: "Doctor not found or not approved",
+      });
     }
 
-    res.json(results[0]);
+    // ✅ STANDARDIZED RESPONSE SHAPE
+    res.json({
+      doctor: results[0],
+    });
   });
 };
 

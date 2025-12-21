@@ -57,7 +57,7 @@ export default function DoctorDashboard() {
     const res = await api.get("/api/doctor/profile", {
       params: { email },
     });
-    setDoctor(res.data);
+    setDoctor(res.data.doctor);
   };
 
   const updateAppointmentStatus = async (id, status) => {
