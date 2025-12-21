@@ -12,7 +12,6 @@ import {
   Button,
   Stack,
   Chip,
-  Divider
 } from "@mui/material";
 import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import PersonIcon from "@mui/icons-material/Person";
@@ -21,12 +20,12 @@ export default function DoctorDashboard() {
   const navigate = useNavigate();
   const email = localStorage.getItem("userEmail");
 
-  const [status, setStatus] = useState("loading");
+  const [access, setAccess] = useState(null);
   const [doctor, setDoctor] = useState(null);
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Auth check
+  // 🔐 Doctor access check
   useEffect(() => {
     if (!email) {
       navigate("/login", { replace: true });
@@ -36,58 +35,45 @@ export default function DoctorDashboard() {
     api
       .get("/api/doctor/access", { params: { email } })
       .then((res) => {
-        if (!res.data.registered) {
-          setStatus("not_registered");
-          return;
-        }
+        setAccess(res.data);
 
-        setStatus(res.data.status);
-
-        if (res.data.status === "approved") {
+        if (res.data.canAccessBooking) {
           fetchDoctorProfile();
           fetchAppointments();
         }
       })
-
-      .catch(() => setStatus("error"))
+      .catch(() => setAccess({ error: true }))
       .finally(() => setLoading(false));
   }, [email, navigate]);
 
-
   const fetchAppointments = async () => {
     const res = await api.get("/api/doctor/appointments", {
-      params: { email }
+      params: { email, status: "pending" },
     });
-    setAppointments(res.data);
+    setAppointments(res.data.appointments || []);
   };
 
   const fetchDoctorProfile = async () => {
     const res = await api.get("/api/doctor/profile", {
-      params: { email }
+      params: { email },
     });
     setDoctor(res.data);
   };
 
-
-  const updateAppointmentStatus = async (id, action) => {
+  const updateAppointmentStatus = async (id, status) => {
     try {
-      const doctorEmail = localStorage.getItem("userEmail");
-
       await api.put(
         `/api/doctor/appointments/${id}`,
-        { status: action },
-        {
-          params: { email: doctorEmail } // 🔥 THIS WAS MISSING
-        }
+        { status }, // confirmed | rejected
+        { params: { email } }
       );
-
-      fetchAppointments(); // refresh list
-    } catch (err) {
-      console.error("Failed to update appointment:", err);
+      fetchAppointments();
+    } catch {
       alert("Failed to update appointment status");
     }
   };
 
+  // ---------------- UI STATES ----------------
 
   if (loading) {
     return (
@@ -100,33 +86,36 @@ export default function DoctorDashboard() {
     );
   }
 
-  if (status === "error") {
-    return (
-      <Alert severity="error">
-        Failed to load doctor dashboard. Please try again.
-      </Alert>
-    );
+  if (!access || access.error) {
+    return <Alert severity="error">Failed to load dashboard</Alert>;
   }
 
-  // ⏳ Pending
-  if (status === "pending") {
+  if (!access.registered) {
     return (
       <Container sx={{ mt: 8 }}>
-        <Alert severity="warning">
-          Your doctor profile is under review. This usually takes 24–48 hours.
+        <Alert severity="info">
+          No doctor profile found. Please register.
         </Alert>
       </Container>
     );
   }
 
-  // ❌ Rejected
-  if (status === "rejected") {
+  if (access.requestStatus === "pending") {
+    return (
+      <Container sx={{ mt: 8 }}>
+        <Alert severity="warning">
+          Your profile is under review.
+        </Alert>
+      </Container>
+    );
+  }
+
+  if (access.requestStatus === "rejected") {
     return (
       <Container sx={{ mt: 8 }}>
         <Alert severity="error">
-          Your application was rejected. Please update details and re-apply.
+          Your application was rejected.
         </Alert>
-
         <Button sx={{ mt: 2 }} onClick={() => navigate("/doctor/register")}>
           Re-apply
         </Button>
@@ -134,31 +123,16 @@ export default function DoctorDashboard() {
     );
   }
 
-  // ❓ Not registered
-  if (status === "not_registered") {
-    return (
-      <Container sx={{ mt: 8 }}>
-        <Alert severity="info">
-          No doctor profile found. Please register to continue.
-        </Alert>
-      </Container>
-    );
-  }
-
-  // ✅ Approved but doctor profile not loaded yet
-  if (status === "approved" && !doctor) {
+  if (!doctor) {
     return (
       <Container sx={{ textAlign: "center", mt: 8 }}>
         <CircularProgress size={40} />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
-          Loading doctor dashboard…
-        </Typography>
       </Container>
     );
   }
 
+  // ---------------- APPROVED DASHBOARD ----------------
 
-  // ✅ APPROVED DASHBOARD
   return (
     <Container sx={{ mt: 4 }}>
       {/* Doctor Header */}
@@ -167,31 +141,23 @@ export default function DoctorDashboard() {
           <Stack direction="row" spacing={2} alignItems="center">
             <PersonIcon sx={{ fontSize: 40 }} />
             <Box>
-              <Typography variant="h5">
-                Dr. {doctor.name}
-              </Typography>
+              <Typography variant="h5">Dr. {doctor.name}</Typography>
               <Typography color="text.secondary">
-                {doctor.specialization} • {doctor.experience} yrs experience
+                {doctor.specialization} • {doctor.experience} yrs
               </Typography>
             </Box>
-            <Chip
-              label="Verified"
-              color="info"
-              sx={{ ml: "auto" }}
-            />
+            <Chip label="Verified" color="success" sx={{ ml: "auto" }} />
           </Stack>
         </CardContent>
       </Card>
 
-      {/* Appointments Section */}
+      {/* Appointments */}
       <Typography variant="h6" gutterBottom>
-        Appointments
+        Pending Appointments
       </Typography>
 
       {appointments.length === 0 ? (
-        <Alert severity="info">
-          No appointments yet.
-        </Alert>
+        <Alert severity="info">No pending appointments.</Alert>
       ) : (
         <Stack spacing={2}>
           {appointments.map((appt) => (
@@ -209,6 +175,10 @@ export default function DoctorDashboard() {
                       {appt.first_name} {appt.last_name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
+                      📅 {appt.appointment_date} | ⏰{" "}
+                      {appt.start_time} - {appt.end_time}
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
                       📞 {appt.mobile_number}
                     </Typography>
                   </Box>
@@ -216,13 +186,13 @@ export default function DoctorDashboard() {
                   <Stack direction="row" spacing={1}>
                     <Button
                       variant="contained"
-                      color="info"
+                      color="success"
                       size="small"
                       onClick={() =>
-                        updateAppointmentStatus(appt.id, "approved")
+                        updateAppointmentStatus(appt.id, "confirmed")
                       }
                     >
-                      Approve
+                      Confirm
                     </Button>
 
                     <Button
