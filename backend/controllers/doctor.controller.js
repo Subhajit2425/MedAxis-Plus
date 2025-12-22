@@ -307,56 +307,72 @@ exports.updateAppointmentStatus = (req, res) => {
 
 /**
  * GET /api/doctor/access
- * Single source of truth for doctor access
  */
 exports.checkDoctorAccess = (req, res) => {
   const { email } = req.query;
 
   if (!email) {
-    return res.json({ authenticated: false });
+    return res.json({ loggedIn: false });
   }
 
-  // ✅ FIRST: check approved doctors table
+  // 1️⃣ Check doctor approval
   db.query(
-    "SELECT id FROM doctors WHERE email = ? LIMIT 1",
+    `
+    SELECT d.id AS doctor_id, r.status
+    FROM doctor_requests r
+    LEFT JOIN doctors d ON d.email = r.email
+    WHERE r.email = ?
+    LIMIT 1
+    `,
     [email],
-    (err, doctors) => {
+    (err, rows) => {
       if (err) {
-        console.error("Doctor access error:", err);
+        console.error("Doctor access check error:", err);
         return res.status(500).json({ error: "Server error" });
       }
 
-      if (doctors.length > 0) {
+      if (rows.length === 0) {
         return res.json({
-          authenticated: true,
-          registered: true,
-          requestStatus: "approved",
-          canAccessBooking: true,
+          loggedIn: true,
+          registered: false,
         });
       }
 
-      // ⬇️ fallback to request table
+      const { doctor_id, status } = rows[0];
+
+      // ❌ Not approved yet
+      if (status !== "approved") {
+        return res.json({
+          loggedIn: true,
+          registered: true,
+          requestStatus: status,
+          canAccessBooking: false,
+        });
+      }
+
+      // 2️⃣ Check availability
       db.query(
-        "SELECT status FROM doctor_requests WHERE email = ? LIMIT 1",
-        [email],
-        (err, requests) => {
+        `
+        SELECT 1
+        FROM doctor_availability
+        WHERE doctor_id = ?
+        LIMIT 1
+        `,
+        [doctor_id],
+        (err, availabilityRows) => {
           if (err) {
-            console.error("Doctor access error:", err);
+            console.error("Availability check error:", err);
             return res.status(500).json({ error: "Server error" });
           }
 
-          if (requests.length === 0) {
-            return res.json({
-              authenticated: true,
-              registered: false,
-            });
-          }
+          const hasAvailability = availabilityRows.length > 0;
 
-          return res.json({
-            authenticated: true,
+          res.json({
+            loggedIn: true,
             registered: true,
-            requestStatus: requests[0].status,
-            canAccessBooking: false,
+            requestStatus: "approved",
+            hasAvailability,
+            canAccessBooking: hasAvailability,
           });
         }
       );

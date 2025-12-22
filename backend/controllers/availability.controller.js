@@ -7,12 +7,49 @@ const {
 } = require("../utils/slotGenerator");
 
 
-// POST /api/doctor/availability
+// POST /api/availability/doctor
 exports.saveDoctorAvailability = async (req, res) => {
-  const { doctor_id, availability } = req.body;
+  const {
+    email,
+    start_time,
+    end_time,
+    slot_duration,
+    break_start,
+    break_end,
+  } = req.body;
 
-  if (!doctor_id || !Array.isArray(availability)) {
-    return res.status(400).json({ error: "Invalid payload" });
+  // ---------- BASIC VALIDATION ----------
+  if (!email || !start_time || !end_time || !slot_duration) {
+    return res.status(400).json({
+      error: "Missing required fields",
+    });
+  }
+
+  if (start_time >= end_time) {
+    return res.status(400).json({
+      error: "Start time must be before end time",
+    });
+  }
+
+  if (
+    (break_start && !break_end) ||
+    (!break_start && break_end)
+  ) {
+    return res.status(400).json({
+      error: "Both break start and break end are required",
+    });
+  }
+
+  if (
+    break_start &&
+    break_end &&
+    (break_start >= break_end ||
+      break_start < start_time ||
+      break_end > end_time)
+  ) {
+    return res.status(400).json({
+      error: "Invalid break time",
+    });
   }
 
   const connection = await db.getConnection();
@@ -20,51 +57,22 @@ exports.saveDoctorAvailability = async (req, res) => {
   try {
     await connection.beginTransaction();
 
-    for (const day of availability) {
-      const {
-        day_of_week,
-        start_time,
-        end_time,
-        break_start,
-        break_end,
-        slot_duration,
-      } = day;
+    // 🔹 Fetch doctor_id from doctors table
+    const [doctors] = await connection.execute(
+      "SELECT id FROM doctors WHERE email = ? LIMIT 1",
+      [email]
+    );
 
-      // ---------- VALIDATIONS ----------
-      if (
-        !day_of_week ||
-        day_of_week < 1 ||
-        day_of_week > 7 ||
-        !start_time ||
-        !end_time ||
-        slot_duration <= 0
-      ) {
-        throw new Error("Invalid availability data");
-      }
+    if (doctors.length === 0) {
+      throw new Error("Doctor not found");
+    }
 
-      if (start_time >= end_time) {
-        throw new Error("Start time must be before end time");
-      }
+    const doctor_id = doctors[0].id;
 
-      if (
-        (break_start && !break_end) ||
-        (!break_start && break_end)
-      ) {
-        throw new Error("Both break start and end are required");
-      }
-
-      if (break_start && break_end) {
-        if (
-          break_start >= break_end ||
-          break_start < start_time ||
-          break_end > end_time
-        ) {
-          throw new Error("Invalid break time");
-        }
-      }
-
-      // ---------- UPSERT QUERY ----------
-      const query = `
+    // 🔹 Save same availability for all 7 days
+    for (let day = 1; day <= 7; day++) {
+      await connection.execute(
+        `
         INSERT INTO doctor_availability
         (doctor_id, day_of_week, start_time, end_time, break_start, break_end, slot_duration)
         VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -74,25 +82,27 @@ exports.saveDoctorAvailability = async (req, res) => {
           break_start = VALUES(break_start),
           break_end = VALUES(break_end),
           slot_duration = VALUES(slot_duration)
-      `;
-
-      await connection.execute(query, [
-        doctor_id,
-        day_of_week,
-        start_time,
-        end_time,
-        break_start || null,
-        break_end || null,
-        slot_duration,
-      ]);
+        `,
+        [
+          doctor_id,
+          day,
+          start_time,
+          end_time,
+          break_start || null,
+          break_end || null,
+          slot_duration,
+        ]
+      );
     }
 
     await connection.commit();
 
-    res.json({ message: "Doctor availability saved successfully" });
+    res.json({
+      message: "Doctor availability saved successfully",
+    });
   } catch (error) {
     await connection.rollback();
-    console.error(error);
+    console.error("Save availability error:", error);
 
     res.status(400).json({
       error: error.message || "Failed to save availability",

@@ -130,9 +130,9 @@ export default function DoctorStatus() {
               variant="contained"
               size="large"
               sx={{ mt: 4 }}
-              onClick={() => navigate("/doctor/dashboard")}
+              onClick={() => navigate("/doctor/complete-profile")}
             >
-              Go to Doctor Dashboard
+              Complete Profile
             </Button>
           )}
 

@@ -43,17 +43,20 @@ export default function Sidebar({ open, setOpen }) {
         registered,
         requestStatus,
         canAccessBooking,
+        hasAvailability,
       } = res.data;
 
       if (!registered) {
         navigate("/doctor/entry");
       } else if (requestStatus === "pending" || requestStatus === "rejected") {
         navigate("/doctor/status");
+      } else if (!hasAvailability) {
+        // ✅ approved but profile incomplete
+        navigate("/doctor/status");
       } else if (canAccessBooking) {
-        // ✅ approved doctor
+        // ✅ approved + availability completed
         navigate("/doctor/dashboard");
       } else {
-        // fallback safety
         navigate("/doctor/status");
       }
 
@@ -63,6 +66,7 @@ export default function Sidebar({ open, setOpen }) {
       closeSidebar();
     }
   };
+
 
 
   return (

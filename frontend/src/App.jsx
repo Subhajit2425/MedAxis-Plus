@@ -18,6 +18,7 @@ import Appointment from "./pages/user/Appointments";
 import DoctorEmail from "./pages/doctors/auth/DoctorEmail";
 import DoctorVerifyOtp from "./pages/doctors/auth/DoctorVerifyOtp";
 import DoctorRegister from "./pages/doctors/auth/DoctorRegister";
+import CompleteProfile from "./pages/doctors/auth/CompleteProfile";
 import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
 import DoctorLoginEntry from "./pages/doctors/dashboard/DoctorLoginEntry";
 import DoctorStatus from "./pages/doctors/dashboard/DoctorStatus";
@@ -47,7 +48,8 @@ function App() {
             <Route path="/doctor/login" element={<DoctorEmail />} />
             <Route path="/doctor/verify" element={<DoctorVerifyOtp />} />
             <Route path="/doctor/register" element={<DoctorRegister />} />
-            <Route path="/doctor/entry" element={<DoctorLoginEntry />} />
+            <Route path="/doctor/register" element={<DoctorRegister />} />
+            <Route path="/doctor/complete-profile" element={<CompleteProfile />} />
             <Route path="/doctor/status" element={<DoctorStatus />} />
 
 
