@@ -208,10 +208,11 @@ exports.getDoctorSlots = async (req, res) => {
       FROM appointments
       WHERE doctor_id = ?
         AND appointment_date = ?
-        AND status != 'cancelled'
+        AND status IN ('pending', 'confirmed')
       `,
       [doctorId, date]
     );
+
 
     const bookedSet = new Set(
       bookedRows.map((row) => row.start_time.slice(0, 5))
