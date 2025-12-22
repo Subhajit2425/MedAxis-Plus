@@ -48,8 +48,8 @@ function App() {
             <Route path="/doctor/login" element={<DoctorEmail />} />
             <Route path="/doctor/verify" element={<DoctorVerifyOtp />} />
             <Route path="/doctor/register" element={<DoctorRegister />} />
-            <Route path="/doctor/register" element={<DoctorRegister />} />
             <Route path="/doctor/complete-profile" element={<CompleteProfile />} />
+            <Route path="/doctor/entry" element={<DoctorLoginEntry />} />
             <Route path="/doctor/status" element={<DoctorStatus />} />
 
 
