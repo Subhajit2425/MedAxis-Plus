@@ -146,7 +146,7 @@ export default function DoctorDashboard() {
                 {doctor.specialization} • {doctor.experience} yrs
               </Typography>
             </Box>
-            <Chip label="Verified" color="success" sx={{ ml: "auto" }} />
+            <Chip label="Verified" color="info" sx={{ ml: "auto" }} />
           </Stack>
         </CardContent>
       </Card>
@@ -186,7 +186,7 @@ export default function DoctorDashboard() {
                   <Stack direction="row" spacing={1}>
                     <Button
                       variant="contained"
-                      color="success"
+                      color="info"
                       size="small"
                       onClick={() =>
                         updateAppointmentStatus(appt.id, "confirmed")
