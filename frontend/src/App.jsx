@@ -12,6 +12,7 @@ import Profile from "./pages/auth/Profile";
 
 import Doctors from "./pages/doctors/list/Doctors";
 import DoctorDetails from "./pages/doctors/details/DoctorDetails";
+import SlotBooking from "./pages/user/SlotBooking";
 import BookingPage from "./pages/user/BookingPage";
 import Appointment from "./pages/user/Appointments";
 
@@ -42,6 +43,7 @@ function App() {
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctor/:doctorId" element={<DoctorDetails />} />
 
+            <Route path="/book-slot" element={<SlotBooking />} />
             <Route path="/book-appointment" element={<BookingPage />} />
             <Route path="/appointments" element={<Appointment />} />
 
