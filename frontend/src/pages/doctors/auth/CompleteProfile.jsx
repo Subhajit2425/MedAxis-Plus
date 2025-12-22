@@ -42,8 +42,10 @@ export default function CompleteProfile() {
   }, [email, navigate]);
 
   const handleChange = (e) => {
+    console.log(e.target.name, e.target.value);
     setForm({ ...form, [e.target.name]: e.target.value });
   };
+
 
   const validate = () => {
     if (!form.start_time || !form.end_time) {
@@ -142,6 +144,7 @@ export default function CompleteProfile() {
           type="time"
           label="Work Start Time"
           name="start_time"
+          value={form.start_time}
           slotProps={{
             input: { step: 300 },
             inputLabel: { shrink: true }
@@ -155,6 +158,7 @@ export default function CompleteProfile() {
           type="time"
           label="Work End Time"
           name="end_time"
+          value={form.end_time}
           slotProps={{
             input: { step: 300 },
             inputLabel: { shrink: true }
@@ -178,7 +182,10 @@ export default function CompleteProfile() {
           type="time"
           label="Break Start (optional)"
           name="break_start"
-          InputLabelProps={{ shrink: true }}
+          value={form.break_start}
+          slotProps={{
+            inputLabel: { shrink: true }
+          }}
           onChange={handleChange}
         />
 
@@ -188,7 +195,10 @@ export default function CompleteProfile() {
           type="time"
           label="Break End (optional)"
           name="break_end"
-          InputLabelProps={{ shrink: true }}
+          value={form.break_end}
+          slotProps={{
+            inputLabel: { shrink: true }
+          }}
           onChange={handleChange}
         />
 
