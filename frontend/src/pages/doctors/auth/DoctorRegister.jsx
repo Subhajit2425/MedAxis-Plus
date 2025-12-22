@@ -24,13 +24,6 @@ export default function DoctorRegister() {
     experience: "",
     address: "",
     fees: "",
-
-    // 🔹 Availability fields
-    start_time: "",
-    end_time: "",
-    slot_duration: 15,
-    break_start: "",
-    break_end: "",
   });
 
   const [snackbar, setSnackbar] = useState({
@@ -106,61 +99,6 @@ export default function DoctorRegister() {
         <TextField fullWidth margin="normal" label="Experience (years)" name="experience" onChange={handleChange} />
         <TextField fullWidth margin="normal" label="Address" name="address" onChange={handleChange} />
         <TextField fullWidth margin="normal" label="Fees" name="fees" onChange={handleChange} />
-
-        {/* 🔹 Availability Section */}
-        <Typography variant="h6" sx={{ mt: 3 }}>
-          Availability
-        </Typography>
-
-        <TextField
-          fullWidth
-          margin="normal"
-          type="time"
-          label="Work Start Time"
-          name="start_time"
-          InputLabelProps={{ shrink: true }}
-          onChange={handleChange}
-        />
-
-        <TextField
-          fullWidth
-          margin="normal"
-          type="time"
-          label="Work End Time"
-          name="end_time"
-          InputLabelProps={{ shrink: true }}
-          onChange={handleChange}
-        />
-
-        <TextField
-          fullWidth
-          margin="normal"
-          type="number"
-          label="Slot Duration (minutes)"
-          name="slot_duration"
-          value={form.slot_duration}
-          onChange={handleChange}
-        />
-
-        <TextField
-          fullWidth
-          margin="normal"
-          type="time"
-          label="Break Start (optional)"
-          name="break_start"
-          InputLabelProps={{ shrink: true }}
-          onChange={handleChange}
-        />
-
-        <TextField
-          fullWidth
-          margin="normal"
-          type="time"
-          label="Break End (optional)"
-          name="break_end"
-          InputLabelProps={{ shrink: true }}
-          onChange={handleChange}
-        />
 
         <Button
           fullWidth
