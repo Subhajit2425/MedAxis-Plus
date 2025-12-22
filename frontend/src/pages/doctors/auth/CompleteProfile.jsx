@@ -142,7 +142,10 @@ export default function CompleteProfile() {
           type="time"
           label="Work Start Time"
           name="start_time"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{
+            input: { step: 300 },
+            inputLabel: { shrink: true }
+          }}
           onChange={handleChange}
         />
 
@@ -152,7 +155,10 @@ export default function CompleteProfile() {
           type="time"
           label="Work End Time"
           name="end_time"
-          InputLabelProps={{ shrink: true }}
+          slotProps={{
+            input: { step: 300 },
+            inputLabel: { shrink: true }
+          }}
           onChange={handleChange}
         />
 
