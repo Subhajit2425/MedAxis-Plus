@@ -8,17 +8,14 @@ const isDevOtpEnabled = process.env.ENABLE_DEV_OTP === "true";
  * POST /api/auth/send-otp
  */
 exports.sendOtp = async (req, res) => {
-  console.log("SEND OTP HIT", req.body);
-
   try {
     const {
       firstName = null,
       lastName = null,
       mobileNumber = null,
       email,
-      dateOfBirth = null
+      dateOfBirth = null,
     } = req.body;
-
 
     if (!email) {
       return res.status(400).json({ error: "Email is required" });
@@ -27,106 +24,81 @@ exports.sendOtp = async (req, res) => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    db.query(
+    // 1️⃣ Check if user exists
+    const [users] = await db.execute(
       "SELECT * FROM users WHERE email = ?",
-      [email],
-      async (err, results) => {
-        if (err) {
-          console.error("DB select error:", err);
-          return res.status(500).json({ error: "Database error" });
-        }
-
-        const isNewUser = results.length === 0;
-
-        const query = isNewUser
-          ? `
-            INSERT INTO users
-            (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
-          `
-          : `
-            UPDATE users SET
-              first_name = ?,
-              last_name = ?,
-              mobile_number = ?,
-              date_of_birth = ?,
-              otp_code = ?,
-              otp_expires_at = ?
-            WHERE email = ?
-          `;
-
-        const values = isNewUser
-          ? [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
-          : [firstName, lastName, mobileNumber, dateOfBirth, otp, expiresAt, email];
-
-        db.query(query, values, async (err) => {
-          if (err) {
-            console.error("DB insert/update error:", err);
-            return res.status(500).json({ error: "Database write failed" });
-          }
-
-          // 🔧 DEV MODE
-          if (isDevOtpEnabled) {
-            console.log("🟡 DEV MODE OTP:", otp);
-            return res.json({
-              message: "OTP generated (dev mode)",
-              devOtp: otp
-            });
-          }
-
-          // 🚀 PROD MODE
-          // try {
-          //   await sendEmail({
-          //     to: email,
-          //     subject: "MedAxis Verification Code",
-          //     title: "MedAxis Email Verification",
-          //     content: `
-          //       <p>Your verification code is:</p>
-          //       <div class="highlight">${otp}</div>
-          //       <p>Valid for 5 minutes</p>
-          //     `
-          //   });
-
-          //   res.json({ message: "OTP sent successfully" });
-
-          // } catch (mailErr) {
-          //   console.error("Email send failed:", mailErr);
-          //   res.status(500).json({ error: "Failed to send OTP email" });
-          // }
-
-          console.log("OTP generated for:", email);
-          res.json({ message: "OTP sent successfully" });
-        });
-      }
+      [email]
     );
-  } catch (e) {
-    console.error("Unexpected OTP error:", e);
-    res.status(500).json({ error: "Unexpected server error" });
+
+    const isNewUser = users.length === 0;
+
+    if (isNewUser) {
+      // 2️⃣ Insert new user
+      await db.execute(
+        `
+        INSERT INTO users
+        (first_name, last_name, mobile_number, email, date_of_birth, otp_code, otp_expires_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+        `,
+        [firstName, lastName, mobileNumber, email, dateOfBirth, otp, expiresAt]
+      );
+    } else {
+      // 3️⃣ Update existing user
+      await db.execute(
+        `
+        UPDATE users SET
+          first_name = ?,
+          last_name = ?,
+          mobile_number = ?,
+          date_of_birth = ?,
+          otp_code = ?,
+          otp_expires_at = ?
+        WHERE email = ?
+        `,
+        [firstName, lastName, mobileNumber, dateOfBirth, otp, expiresAt, email]
+      );
+    }
+
+    // 🔧 DEV MODE
+    if (isDevOtpEnabled) {
+      console.log("🟡 DEV MODE OTP:", otp);
+      return res.json({
+        message: "OTP generated (dev mode)",
+        devOtp: otp,
+      });
+    }
+
+    // 🚀 PROD MODE (email sending)
+    // await sendEmail({ ... });
+
+    res.json({ message: "OTP sent successfully" });
+  } catch (err) {
+    console.error("Send OTP error:", err);
+    res.status(500).json({ error: "Failed to send OTP" });
   }
 };
-
 
 /**
  * POST /api/auth/verify-otp
  */
-exports.verifyOtp = (req, res) => {
+exports.verifyOtp = async (req, res) => {
   const { email, otp } = req.body;
 
   if (!email || !otp) {
     return res.status(400).json({ error: "Email and OTP are required" });
   }
 
-  db.query("SELECT * FROM users WHERE email = ?", [email], (err, results) => {
-    if (err) {
-      console.error("Verify OTP DB error:", err);
-      return res.status(500).json({ error: "Database error" });
-    }
+  try {
+    const [users] = await db.execute(
+      "SELECT * FROM users WHERE email = ?",
+      [email]
+    );
 
-    if (results.length === 0) {
+    if (users.length === 0) {
       return res.status(400).json({ error: "Invalid user" });
     }
 
-    const user = results[0];
+    const user = users[0];
 
     if (!user.otp_code || !user.otp_expires_at) {
       return res.status(400).json({ error: "OTP not requested" });
@@ -139,7 +111,8 @@ exports.verifyOtp = (req, res) => {
       return res.status(400).json({ error: "Invalid or expired OTP" });
     }
 
-    db.query(
+    // Clear OTP
+    await db.execute(
       "UPDATE users SET otp_code = NULL, otp_expires_at = NULL WHERE email = ?",
       [email]
     );
@@ -148,8 +121,11 @@ exports.verifyOtp = (req, res) => {
       message: "Login successful",
       user: {
         email: user.email,
-        firstName: user.first_name
-      }
+        firstName: user.first_name,
+      },
     });
-  });
+  } catch (err) {
+    console.error("Verify OTP error:", err);
+    res.status(500).json({ error: "Failed to verify OTP" });
+  }
 };

@@ -18,109 +18,118 @@ exports.sendDoctorOtp = async (req, res) => {
     const otp = generateOTP();
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
 
-    // delete old OTPs
-    db.query("DELETE FROM doctor_otps WHERE email = ?", [email]);
-
-    // save new OTP
-    db.query(
-      "INSERT INTO doctor_otps (email, otp, expires_at) VALUES (?, ?, ?)",
-      [email, otp, expiresAt],
-      async (err) => {
-        if (err) {
-          console.error("Doctor OTP DB error:", err);
-          return res.status(500).json({ error: "Failed to generate OTP" });
-        }
-
-        // 🔧 DEV MODE
-        if (isDevOtpEnabled) {
-          console.log("🟡 DEV MODE DOCTOR OTP:", otp);
-          return res.json({
-            message: "OTP generated (development mode)",
-            devOtp: otp
-          });
-        }
-
-        // 🚀 PROD MODE
-        try {
-          await sendEmail({
-            to: email,
-            subject: "MedAxis Doctor Verification Code",
-            title: "MedAxis · Doctor Verification",
-            content: `
-              <p>Dear Doctor,</p>
-              <p>You are attempting to sign in to your <b>MedAxis Doctor Dashboard</b>.</p>
-              <div class="highlight">${otp}</div>
-              <p>This verification code is valid for <b>5 minutes</b>.</p>
-              <p>Regards,<br /><b>MedAxis Support Team</b></p>
-            `
-          });
-
-          res.json({ message: "OTP sent to doctor email" });
-
-        } catch (mailErr) {
-          console.error("Doctor OTP email failed:", mailErr);
-          res.status(500).json({ error: "Failed to send OTP email" });
-        }
-      }
+    // 1️⃣ Remove old OTPs
+    await db.execute(
+      "DELETE FROM doctor_otps WHERE email = ?",
+      [email]
     );
+
+    // 2️⃣ Save new OTP
+    await db.execute(
+      "INSERT INTO doctor_otps (email, otp, expires_at) VALUES (?, ?, ?)",
+      [email, otp, expiresAt]
+    );
+
+    // 🔧 DEV MODE
+    if (isDevOtpEnabled) {
+      console.log("🟡 DEV MODE DOCTOR OTP:", otp);
+      return res.json({
+        message: "OTP generated (development mode)",
+        devOtp: otp,
+      });
+    }
+
+    // 🚀 PROD MODE (email)
+    await sendEmail({
+      to: email,
+      subject: "MedAxis Doctor Verification Code",
+      title: "MedAxis · Doctor Verification",
+      content: `
+        <p>Dear Doctor,</p>
+        <p>You are attempting to sign in to your <b>MedAxis Doctor Dashboard</b>.</p>
+        <div class="highlight">${otp}</div>
+        <p>This verification code is valid for <b>5 minutes</b>.</p>
+        <p>Regards,<br /><b>MedAxis Support Team</b></p>
+      `,
+    });
+
+    res.json({ message: "OTP sent to doctor email" });
   } catch (err) {
-    console.error("Doctor send OTP unexpected error:", err);
-    res.status(500).json({ error: "Unexpected server error" });
+    console.error("Doctor send OTP error:", err);
+    res.status(500).json({ error: "Failed to generate or send OTP" });
   }
 };
+
+
 
 /**
  * POST /api/doctor/auth/verify-otp
  */
-exports.verifyDoctorOtp = (req, res) => {
+exports.verifyDoctorOtp = async (req, res) => {
   const { email, otp } = req.body;
 
-  db.query(
-    "SELECT * FROM doctor_otps WHERE email = ? AND otp = ?",
-    [email, otp],
-    (err, otpRows) => {
-      if (err || otpRows.length === 0) {
-        return res.status(400).json({ error: "Invalid OTP" });
-      }
+  if (!email || !otp) {
+    return res.status(400).json({ error: "Email and OTP required" });
+  }
 
-      if (new Date(otpRows[0].expires_at) < new Date()) {
-        return res.status(400).json({ error: "OTP expired" });
-      }
+  try {
+    // 1️⃣ Validate OTP
+    const [otpRows] = await db.execute(
+      "SELECT * FROM doctor_otps WHERE email = ? AND otp = ?",
+      [email, otp]
+    );
 
-      // OTP valid → delete it
-      db.query("DELETE FROM doctor_otps WHERE email = ?", [email]);
-
-      // check doctor table
-      db.query(
-        "SELECT * FROM doctors WHERE email = ?",
-        [email],
-        (err, doctors) => {
-          if (doctors.length === 0) {
-            return res.json({
-              action: "REGISTER",
-              message: "Doctor not found, registration required"
-            });
-          }
-
-          const doctor = doctors[0];
-
-          if (doctor.status === "pending") {
-            return res.json({
-              action: "PENDING",
-              message: "Your account is under verification"
-            });
-          }
-
-          return res.json({
-            action: "LOGIN",
-            message: "Login successful",
-            doctor: {
-              id: doctor.id,
-              email: doctor.email
-            }
-          });
-        }
-      );
+    if (otpRows.length === 0) {
+      return res.status(400).json({ error: "Invalid OTP" });
     }
-  );
+
+    if (new Date(otpRows[0].expires_at) < new Date()) {
+      await db.execute(
+        "DELETE FROM doctor_otps WHERE email = ?",
+        [email]
+      );
+      return res.status(400).json({ error: "OTP expired" });
+    }
+
+    // 2️⃣ OTP valid → delete it
+    await db.execute(
+      "DELETE FROM doctor_otps WHERE email = ?",
+      [email]
+    );
+
+    // 3️⃣ Check doctor record
+    const [doctors] = await db.execute(
+      "SELECT * FROM doctors WHERE email = ?",
+      [email]
+    );
+
+    if (doctors.length === 0) {
+      return res.json({
+        action: "REGISTER",
+        message: "Doctor not found, registration required",
+      });
+    }
+
+    const doctor = doctors[0];
+
+    if (doctor.status === "pending") {
+      return res.json({
+        action: "PENDING",
+        message: "Your account is under verification",
+      });
+    }
+
+    return res.json({
+      action: "LOGIN",
+      message: "Login successful",
+      doctor: {
+        id: doctor.id,
+        email: doctor.email,
+      },
+    });
+  } catch (err) {
+    console.error("Verify doctor OTP error:", err);
+    res.status(500).json({ error: "Failed to verify OTP" });
+  }
 };
+

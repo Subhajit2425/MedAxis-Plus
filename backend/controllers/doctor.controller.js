@@ -1,249 +1,224 @@
 const db = require("../config/db");
-// const generateSlots = require("../utils/slotGenerator");
 
 
 /**
  * GET /api/doctors
  */
-exports.getAllDoctors = (req, res) => {
-  db.query("SELECT * FROM doctors", (err, results) => {
-    if (err) {
-      console.error("❌ SQL ERROR:", err);
-      return res.status(500).json({ error: err.message });
-    }
-    res.json(results);
-  });
+exports.getAllDoctors = async (req, res) => {
+  try {
+    const [rows] = await db.execute("SELECT * FROM doctors");
+    res.json(rows);
+  } catch (err) {
+    console.error("SQL ERROR:", err);
+    res.status(500).json({ error: "Failed to fetch doctors" });
+  }
 };
+
 
 /**
  * GET /api/doctors/:id
  */
-exports.getDoctorById = (req, res) => {
+exports.getDoctorById = async (req, res) => {
   const doctorId = req.params.id;
 
-  const sql = `
-    SELECT id, name, specialization, experience, fees, address, latitude, longitude
-    FROM doctors
-    WHERE id = ?
-  `;
+  try {
+    const [rows] = await db.execute(
+      `
+      SELECT id, name, specialization, experience, fees, address, latitude, longitude
+      FROM doctors
+      WHERE id = ?
+      `,
+      [doctorId]
+    );
 
-  db.query(sql, [doctorId], (err, results) => {
-    if (err) {
-      console.error("Error fetching doctor:", err);
-      return res.status(500).json({ error: "Failed to fetch doctor details" });
-    }
-
-    if (results.length === 0) {
+    if (rows.length === 0) {
       return res.status(404).json({ error: "Doctor not found" });
     }
 
-    res.json(results[0]);
-  });
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("Error fetching doctor:", err);
+    res.status(500).json({ error: "Failed to fetch doctor details" });
+  }
 };
+
 
 
 /**
  * POST /api/doctor/register
  * Doctor registration / re-application
  */
-exports.registerDoctor = (req, res) => {
-  const {
-    email,
-    name,
-    specialization,
-    experience,
-    address,
-    fees
-  } = req.body;
+exports.registerDoctor = async (req, res) => {
+  const { email, name, specialization, experience, address, fees } = req.body;
 
   if (!email || !name) {
     return res.status(400).json({ error: "Missing required fields" });
   }
 
-  db.query(
-    "SELECT id, status FROM doctor_requests WHERE email = ?",
-    [email],
-    (err, rows) => {
-      if (err) return res.status(500).json(err);
+  const connection = await db.getConnection();
 
-      // 🟡 Case 1: Record exists
-      if (rows.length > 0) {
-        const { status } = rows[0];
+  try {
+    await connection.beginTransaction();
 
-        // ⛔ Pending → block
-        if (status === "pending") {
-          return res.status(400).json({
-            error: "Your request is already pending approval"
-          });
-        }
+    const [rows] = await connection.execute(
+      "SELECT id, status FROM doctor_requests WHERE email = ?",
+      [email]
+    );
 
-        // ⛔ Approved → block
-        if (status === "approved") {
-          return res.status(400).json({
-            error: "You are already an approved doctor"
-          });
-        }
+    if (rows.length > 0) {
+      const { status } = rows[0];
 
-        // ✅ Rejected → allow reapply (UPDATE)
-        if (status === "rejected") {
-          return db.query(
-            `
-            UPDATE doctor_requests
-            SET
-              name = ?,
-              specialization = ?,
-              experience = ?,
-              address = ?,
-              fees = ?,
-              status = 'pending'
-            WHERE email = ?
-            `,
-            [name, specialization, experience, address, fees, email],
-            (err) => {
-              if (err) return res.status(500).json(err);
-
-              res.json({
-                message: "Reapplication submitted. Await admin approval."
-              });
-            }
-          );
-        }
+      if (status === "pending") {
+        await connection.rollback();
+        return res.status(400).json({
+          error: "Your request is already pending approval",
+        });
       }
 
-      // 🟢 Case 2: No record → INSERT
-      db.query(
-        `
-        INSERT INTO doctor_requests
-        (email, name, specialization, experience, address, fees, status)
-        VALUES (?, ?, ?, ?, ?, ?, 'pending')
-        `,
-        [email, name, specialization, experience, address, fees],
-        (err) => {
-          if (err) return res.status(500).json(err);
+      if (status === "approved") {
+        await connection.rollback();
+        return res.status(400).json({
+          error: "You are already an approved doctor",
+        });
+      }
 
-          res.json({
-            message: "Registration submitted. Await admin approval."
-          });
-        }
-      );
+      if (status === "rejected") {
+        await connection.execute(
+          `
+          UPDATE doctor_requests
+          SET name=?, specialization=?, experience=?, address=?, fees=?, status='pending'
+          WHERE email=?
+          `,
+          [name, specialization, experience, address, fees, email]
+        );
+
+        await connection.commit();
+        return res.json({
+          message: "Reapplication submitted. Await admin approval.",
+        });
+      }
     }
-  );
+
+    await connection.execute(
+      `
+      INSERT INTO doctor_requests
+      (email, name, specialization, experience, address, fees, status)
+      VALUES (?, ?, ?, ?, ?, ?, 'pending')
+      `,
+      [email, name, specialization, experience, address, fees]
+    );
+
+    await connection.commit();
+
+    res.json({
+      message: "Registration submitted. Await admin approval.",
+    });
+  } catch (err) {
+    await connection.rollback();
+    console.error(err);
+    res.status(500).json({ error: "Doctor registration failed" });
+  } finally {
+    connection.release();
+  }
 };
+
 
 
 /**
  * GET /api/doctor/status
  */
-exports.getDoctorStatus = (req, res) => {
+exports.getDoctorStatus = async (req, res) => {
   const { email } = req.query;
 
   if (!email) {
     return res.status(400).json({ error: "Email required" });
   }
 
-  db.query(
-    "SELECT * FROM doctors WHERE email = ?",
-    [email],
-    (err, doctors) => {
-      if (err) return res.status(500).json(err);
+  try {
+    const [doctors] = await db.execute(
+      "SELECT * FROM doctors WHERE email = ?",
+      [email]
+    );
 
-      if (doctors.length > 0) {
-        return res.json({
-          status: "approved",
-          doctor: doctors[0]
-        });
-      }
-
-      db.query(
-        "SELECT status FROM doctor_requests WHERE email = ?",
-        [email],
-        (err, requests) => {
-          if (err) return res.status(500).json(err);
-
-          if (requests.length > 0) {
-            return res.json({ status: requests[0].status });
-          }
-
-          res.json({ status: "not_registered" });
-        }
-      );
+    if (doctors.length > 0) {
+      return res.json({
+        status: "approved",
+        doctor: doctors[0],
+      });
     }
-  );
+
+    const [requests] = await db.execute(
+      "SELECT status FROM doctor_requests WHERE email = ?",
+      [email]
+    );
+
+    if (requests.length > 0) {
+      return res.json({ status: requests[0].status });
+    }
+
+    res.json({ status: "not_registered" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch doctor status" });
+  }
 };
+
 
 
 /**
  * GET /api/doctor/appointments
  * Fetch appointments for a doctor
  */
-exports.getDoctorAppointments = (req, res) => {
+exports.getDoctorAppointments = async (req, res) => {
   const { email, status = "pending", date } = req.query;
 
   if (!email) {
-    return res.status(400).json({
-      error: "Doctor email is required",
-    });
+    return res.status(400).json({ error: "Doctor email is required" });
   }
 
-  // ---- STATUS FILTER ----
-  let statusCondition = "";
-  const params = [email];
+  try {
+    let conditions = [];
+    let params = [email];
 
-  if (status !== "all") {
-    const allowedStatuses = ["pending", "confirmed", "rejected", "cancelled"];
-
-    if (!allowedStatuses.includes(status)) {
-      return res.status(400).json({ error: "Invalid status value" });
+    if (status !== "all") {
+      conditions.push("a.status = ?");
+      params.push(status);
     }
 
-    statusCondition = "AND a.status = ?";
-    params.push(status);
-  }
-
-  // ---- DATE FILTER ----
-  let dateCondition = "";
-  if (date) {
-    dateCondition = "AND a.appointment_date = ?";
-    params.push(date);
-  }
-
-  const sql = `
-    SELECT
-      a.id,
-      a.first_name,
-      a.last_name,
-      a.mobile_number,
-      a.email           AS user_email,
-      a.appointment_date,
-      a.start_time,
-      a.end_time,
-      a.status,
-      a.created_at
-    FROM appointments a
-    JOIN doctors d ON a.doctor_id = d.id
-    WHERE d.email = ?
-      ${statusCondition}
-      ${dateCondition}
-    ORDER BY 
-      a.appointment_date ASC,
-      a.start_time ASC
-  `;
-
-  db.query(sql, params, (err, results) => {
-    if (err) {
-      console.error("Error fetching doctor appointments:", err);
-      return res.status(500).json({
-        error: "Failed to fetch appointments",
-      });
+    if (date) {
+      conditions.push("a.appointment_date = ?");
+      params.push(date);
     }
+
+    const whereClause =
+      conditions.length > 0 ? "AND " + conditions.join(" AND ") : "";
+
+    const [rows] = await db.execute(
+      `
+      SELECT
+        a.id, a.first_name, a.last_name, a.mobile_number,
+        a.email AS user_email, a.appointment_date,
+        a.start_time, a.end_time, a.status, a.created_at
+      FROM appointments a
+      JOIN doctors d ON a.doctor_id = d.id
+      WHERE d.email = ?
+      ${whereClause}
+      ORDER BY a.appointment_date ASC, a.start_time ASC
+      `,
+      params
+    );
 
     res.json({
       doctor_email: email,
-      count: results.length,
-      appointments: results,
+      count: rows.length,
+      appointments: rows,
     });
-  });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch appointments" });
+  }
 };
+
 
 
 
@@ -251,56 +226,41 @@ exports.getDoctorAppointments = (req, res) => {
  * PUT /api/doctor/appointments/:id
  * Doctor confirms or rejects an appointment
  */
-exports.updateAppointmentStatus = (req, res) => {
+exports.updateAppointmentStatus = async (req, res) => {
   const appointmentId = req.params.id;
   const { status } = req.body;
   const doctorEmail = req.query.email;
 
   if (!doctorEmail) {
-    return res.status(400).json({
-      error: "Doctor email is required",
-    });
+    return res.status(400).json({ error: "Doctor email is required" });
   }
 
-  // ✅ Status vocabulary synced with booking logic
   if (!["confirmed", "rejected"].includes(status)) {
-    return res.status(400).json({
-      error: "Invalid status value",
-    });
+    return res.status(400).json({ error: "Invalid status value" });
   }
 
-  const sql = `
-    UPDATE appointments a
-    JOIN doctors d ON a.doctor_id = d.id
-    SET a.status = ?
-    WHERE a.id = ?
-      AND d.email = ?
-      AND a.status = 'pending'
-  `;
-
-  db.query(sql, [status, appointmentId, doctorEmail], (err, result) => {
-    if (err) {
-      console.error("Error updating appointment status:", err);
-      return res.status(500).json({
-        error: "Failed to update appointment",
-      });
-    }
+  try {
+    const [result] = await db.execute(
+      `
+      UPDATE appointments a
+      JOIN doctors d ON a.doctor_id = d.id
+      SET a.status = ?
+      WHERE a.id = ? AND d.email = ? AND a.status = 'pending'
+      `,
+      [status, appointmentId, doctorEmail]
+    );
 
     if (result.affectedRows === 0) {
       return res.status(403).json({
-        error:
-          "Unauthorized, appointment not found, or status already updated",
+        error: "Unauthorized or appointment not found",
       });
     }
 
-    res.json({
-      message:
-        status === "confirmed"
-          ? "Appointment confirmed successfully"
-          : "Appointment rejected successfully",
-      status,
-    });
-  });
+    res.json({ message: "Appointment updated", status });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to update appointment" });
+  }
 };
 
 
@@ -308,76 +268,54 @@ exports.updateAppointmentStatus = (req, res) => {
 /**
  * GET /api/doctor/access
  */
-exports.checkDoctorAccess = (req, res) => {
+exports.checkDoctorAccess = async (req, res) => {
   const { email } = req.query;
 
-  if (!email) {
-    return res.json({ loggedIn: false });
-  }
+  if (!email) return res.json({ loggedIn: false });
 
-  // 1️⃣ Check doctor approval
-  db.query(
-    `
-    SELECT d.id AS doctor_id, r.status
-    FROM doctor_requests r
-    LEFT JOIN doctors d ON d.email = r.email
-    WHERE r.email = ?
-    LIMIT 1
-    `,
-    [email],
-    (err, rows) => {
-      if (err) {
-        console.error("Doctor access check error:", err);
-        return res.status(500).json({ error: "Server error" });
-      }
+  try {
+    const [rows] = await db.execute(
+      `
+      SELECT d.id AS doctor_id, r.status
+      FROM doctor_requests r
+      LEFT JOIN doctors d ON d.email = r.email
+      WHERE r.email = ?
+      LIMIT 1
+      `,
+      [email]
+    );
 
-      if (rows.length === 0) {
-        return res.json({
-          loggedIn: true,
-          registered: false,
-        });
-      }
-
-      const { doctor_id, status } = rows[0];
-
-      // ❌ Not approved yet
-      if (status !== "approved") {
-        return res.json({
-          loggedIn: true,
-          registered: true,
-          requestStatus: status,
-          canAccessBooking: false,
-        });
-      }
-
-      // 2️⃣ Check availability
-      db.query(
-        `
-        SELECT 1
-        FROM doctor_availability
-        WHERE doctor_id = ?
-        LIMIT 1
-        `,
-        [doctor_id],
-        (err, availabilityRows) => {
-          if (err) {
-            console.error("Availability check error:", err);
-            return res.status(500).json({ error: "Server error" });
-          }
-
-          const hasAvailability = availabilityRows.length > 0;
-
-          res.json({
-            loggedIn: true,
-            registered: true,
-            requestStatus: "approved",
-            hasAvailability,
-            canAccessBooking: hasAvailability,
-          });
-        }
-      );
+    if (rows.length === 0) {
+      return res.json({ loggedIn: true, registered: false });
     }
-  );
+
+    const { doctor_id, status } = rows[0];
+
+    if (status !== "approved") {
+      return res.json({
+        loggedIn: true,
+        registered: true,
+        requestStatus: status,
+        canAccessBooking: false,
+      });
+    }
+
+    const [availability] = await db.execute(
+      "SELECT 1 FROM doctor_availability WHERE doctor_id = ? LIMIT 1",
+      [doctor_id]
+    );
+
+    res.json({
+      loggedIn: true,
+      registered: true,
+      requestStatus: "approved",
+      hasAvailability: availability.length > 0,
+      canAccessBooking: availability.length > 0,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Access check failed" });
+  }
 };
 
 
@@ -386,138 +324,32 @@ exports.checkDoctorAccess = (req, res) => {
  * GET /api/doctor/profile
  * Fetch approved doctor profile (SOURCE: doctors table)
  */
-exports.getDoctorProfile = (req, res) => {
+exports.getDoctorProfile = async (req, res) => {
   const { email } = req.query;
 
   if (!email) {
-    return res.status(400).json({
-      error: "Email is required",
-    });
+    return res.status(400).json({ error: "Email is required" });
   }
 
-  const sql = `
-    SELECT 
-      name,
-      specialization,
-      experience,
-      fees,
-      address
-    FROM doctors
-    WHERE email = ?
-    LIMIT 1
-  `;
+  try {
+    const [rows] = await db.execute(
+      `
+      SELECT name, specialization, experience, fees, address
+      FROM doctors
+      WHERE email = ?
+      LIMIT 1
+      `,
+      [email]
+    );
 
-  db.query(sql, [email], (err, results) => {
-    if (err) {
-      console.error("Doctor profile fetch error:", err);
-      return res.status(500).json({
-        error: "Server error",
-      });
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Doctor not found" });
     }
 
-    if (results.length === 0) {
-      return res.status(404).json({
-        error: "Doctor not found",
-      });
-    }
-
-    res.json({
-      doctor: results[0],
-    });
-  });
+    res.json({ doctor: rows[0] });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to fetch doctor profile" });
+  }
 };
 
-
-
-/**
- * POST /api/doctor/availability
- * Save or update doctor availability
- */
-// exports.saveAvailability = (req, res) => {
-//   const doctorId = req.user?.id; // auth middleware later
-//   const { dayOfWeek, startTime, endTime, slotDuration } = req.body;
-
-//   if (
-//     dayOfWeek === undefined ||
-//     !startTime ||
-//     !endTime ||
-//     !slotDuration
-//   ) {
-//     return res.status(400).json({ error: "Missing fields" });
-//   }
-
-//   const sql = `
-//     INSERT INTO doctor_availability
-//     (doctor_id, day_of_week, start_time, end_time, slot_duration)
-//     VALUES (?, ?, ?, ?, ?)
-//     ON DUPLICATE KEY UPDATE
-//       start_time = VALUES(start_time),
-//       end_time = VALUES(end_time),
-//       slot_duration = VALUES(slot_duration)
-//   `;
-
-//   db.query(
-//     sql,
-//     [doctorId, dayOfWeek, startTime, endTime, slotDuration],
-//     (err) => {
-//       if (err) return res.status(500).json(err);
-//       res.json({ message: "Availability saved successfully" });
-//     }
-//   );
-// };
-
-/**
- * GET /api/doctor/:doctorId/slots
- * Fetch available slots for a given date
- */
-// exports.getAvailableSlots = (req, res) => {
-//   const { doctorId } = req.params;
-//   const { date } = req.query;
-
-//   if (!date) {
-//     return res.status(400).json({ error: "Date is required" });
-//   }
-
-//   const dayOfWeek = new Date(date).getDay();
-
-//   db.query(
-//     `
-//     SELECT * FROM doctor_availability
-//     WHERE doctor_id = ? AND day_of_week = ?
-//     `,
-//     [doctorId, dayOfWeek],
-//     (err, availability) => {
-//       if (err) return res.status(500).json(err);
-//       if (availability.length === 0) return res.json([]);
-
-//       const { start_time, end_time, slot_duration } = availability[0];
-
-//       const allSlots = generateSlots(
-//         start_time,
-//         end_time,
-//         slot_duration
-//       );
-
-//       db.query(
-//         `
-//         SELECT start_time FROM appointments
-//         WHERE doctor_id = ?
-//         AND appointment_date = ?
-//         AND status IN ('pending','confirmed')
-//         `,
-//         [doctorId, date],
-//         (err, booked) => {
-//           if (err) return res.status(500).json(err);
-
-//           const bookedTimes = booked.map(b => b.start_time);
-
-//           const availableSlots = allSlots.filter(
-//             slot => !bookedTimes.includes(slot.start_time)
-//           );
-
-//           res.json(availableSlots);
-//         }
-//       );
-//     }
-//   );
-// };
