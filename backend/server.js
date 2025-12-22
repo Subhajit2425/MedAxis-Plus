@@ -1,32 +1,27 @@
 require("dotenv").config();
 
 const express = require("express");
-const cors = require("cors");
-
 const app = express();
 
+
 /* ---------------- CORS CONFIG ---------------- */
+const cors = require("cors");
+
 const allowedOrigins = [
   "http://localhost:5173",
-  "https://subhajit2425.github.io"
+  "https://subhajit2425.github.io",
 ];
 
-const corsOptions = {
-  origin: (origin, callback) => {
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error("Not allowed by CORS"));
-  },
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
+app.use(
+  cors({
+    origin: allowedOrigins,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
-
+// 🔥 VERY IMPORTANT
+app.options("*", cors());
 
 
 /* ---------------- MIDDLEWARE ---------------- */
