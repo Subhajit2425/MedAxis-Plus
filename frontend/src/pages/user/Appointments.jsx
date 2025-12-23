@@ -40,6 +40,14 @@ export default function Appointment() {
     severity: "success",
   });
 
+  const [filter, setFilter] = useState("all");
+  const filteredAppointments =
+    filter === "all"
+      ? appointments
+      : appointments.filter(
+        (appt) => appt.status.toLowerCase() === filter
+      );
+
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
@@ -144,8 +152,75 @@ export default function Appointment() {
         </Typography>
       </Box>
 
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: 1.5,
+          flexWrap: "wrap",
+          mb: 4,
+        }}
+      >
+        {[
+          { label: "All", value: "all" },
+          { label: "Approved", value: "approved" },
+          { label: "Pending", value: "pending" },
+          { label: "Rejected", value: "rejected" },
+          { label: "Cancelled", value: "cancelled" },
+        ].map((btn) => (
+          <Button
+            key={btn.value}
+            variant={filter === btn.value ? "contained" : "outlined"}
+            onClick={() => setFilter(btn.value)}
+            sx={{
+              textTransform: "none",
+              fontWeight: 600,
+              borderRadius: 999,
+              px: 3,
+              backgroundColor:
+                filter === btn.value ? "#0ea5e9" : "transparent",
+              color: filter === btn.value ? "#fff" : "text.primary",
+              "&:hover": {
+                backgroundColor:
+                  filter === btn.value ? "#0284c7" : "#e5f3fb",
+              },
+            }}
+          >
+            {btn.label}
+          </Button>
+        ))}
+      </Box>
+
+
       <Stack spacing={2}>
-        {appointments.map((appt) => (
+        {/* EMPTY STATE FOR FILTER */}
+        {filteredAppointments.length === 0 && (
+          <Card
+            elevation={0}
+            sx={{
+              borderRadius: 3,
+              py: 6,
+              textAlign: "center",
+              backgroundColor: "#f8fafc",
+              border: "1px dashed #cbd5e1",
+            }}
+          >
+            <Typography fontWeight={600}>
+              No{" "}
+              {filter !== "all"
+                ? filter.charAt(0).toUpperCase() + filter.slice(1)
+                : ""}{" "}
+              appointments found
+            </Typography>
+
+            <Typography color="text.secondary" sx={{ mt: 1 }}>
+              Try switching to a different filter
+            </Typography>
+          </Card>
+        )}
+
+        {/* APPOINTMENT CARDS */}
+        {filteredAppointments.map((appt) => (
           <Card
             key={appt.id}
             elevation={3}
@@ -187,16 +262,19 @@ export default function Appointment() {
                       color: "#fff",
                       backgroundColor:
                         appt.status === "pending"
-                          ? "#f59e0b"
+                          ? "#f59e0b"   // yellow
                           : appt.status === "approved"
-                            ? "#16a34a"
-                            : "#dc2626",
+                            ? "#16a34a" // green
+                            : appt.status === "cancelled"
+                              ? "#64748b" // gray
+                              : "#dc2626" // rejected (red)
                     }}
                   />
 
                   {appt.status === "pending" && (
                     <IconButton
                       color="error"
+                      disabled={confirmOpen}
                       onClick={() => handleCancelClick(appt.id)}
                     >
                       <DeleteIcon />
