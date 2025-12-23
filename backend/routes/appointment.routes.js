@@ -9,7 +9,7 @@ router.post("/", appointmentController.bookAppointment);
 // Get user appointments
 router.get("/", appointmentController.getUserAppointments);
 
-// Delete appointment
-router.delete("/:id", appointmentController.cancelAppointment);
+// Cancel appointment (soft delete)
+router.put("/:id/cancel", appointmentController.cancelAppointment);
 
 module.exports = router;

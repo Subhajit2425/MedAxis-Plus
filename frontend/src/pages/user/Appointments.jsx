@@ -70,9 +70,14 @@ export default function Appointment() {
   const confirmCancel = async () => {
     setDeleting(true);
     try {
-      await api.put(`/api/appointments/${deleteId}`, {
-        params: { email: userEmail },
-      });
+      await api.put(
+        `/api/appointments/${deleteId}/cancel`,
+        null,
+        {
+          params: { email: userEmail },
+        }
+      );
+
 
       setAppointments((prev) =>
         prev.map((a) =>
@@ -184,8 +189,8 @@ export default function Appointment() {
                         appt.status === "pending"
                           ? "#f59e0b"
                           : appt.status === "approved"
-                          ? "#16a34a"
-                          : "#dc2626",
+                            ? "#16a34a"
+                            : "#dc2626",
                     }}
                   />
 
