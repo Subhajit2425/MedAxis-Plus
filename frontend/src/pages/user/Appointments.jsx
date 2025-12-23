@@ -70,7 +70,7 @@ export default function Appointment() {
   const confirmCancel = async () => {
     setDeleting(true);
     try {
-      await api.put(`/api/appointments/${deleteId}/cancel`, {
+      await api.put(`/api/appointments/${deleteId}`, {
         params: { email: userEmail },
       });
 
