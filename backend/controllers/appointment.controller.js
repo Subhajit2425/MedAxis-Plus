@@ -211,3 +211,50 @@ exports.bookAppointment = async (req, res) => {
     connection.release();
   }
 };
+
+
+/**
+ * GET /api/appointments/:id
+ * Get single appointment details
+ */
+exports.getAppointmentById = async (req, res) => {
+  const appointmentId = req.params.id;
+  const userEmail = req.query.email;
+
+  if (!userEmail) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  try {
+    const [rows] = await db.execute(
+      `
+      SELECT
+        a.id,
+        a.doctor_id,
+        d.name AS doctor_name,
+        a.first_name,
+        a.last_name,
+        a.mobile_number,
+        a.email,
+        a.appointment_date,
+        a.start_time,
+        a.end_time,
+        a.status,
+        a.created_at
+      FROM appointments a
+      JOIN doctors d ON a.doctor_id = d.id
+      WHERE a.id = ? AND a.email = ?
+      `,
+      [appointmentId, userEmail]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({ error: "Appointment not found" });
+    }
+
+    res.json(rows[0]);
+  } catch (err) {
+    console.error("Error fetching appointment:", err);
+    res.status(500).json({ error: "Failed to fetch appointment" });
+  }
+};

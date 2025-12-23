@@ -224,10 +224,15 @@ export default function Appointment() {
           <Card
             key={appt.id}
             elevation={3}
+            onClick={() => navigate(`/appointments/${appt.id}`)}
             sx={{
               borderRadius: 3,
+              cursor: "pointer",
               transition: "0.2s",
-              "&:hover": { boxShadow: 6 },
+              "&:hover": {
+                boxShadow: 6,
+                backgroundColor: "#f8fafc",
+              },
             }}
           >
             <CardContent>
@@ -275,7 +280,10 @@ export default function Appointment() {
                     <IconButton
                       color="error"
                       disabled={confirmOpen}
-                      onClick={() => handleCancelClick(appt.id)}
+                      onClick={(e) => {
+                        e.stopPropagation(); // 🔥 prevent card click
+                        handleCancelClick(appt.id);
+                      }}
                     >
                       <DeleteIcon />
                     </IconButton>

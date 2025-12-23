@@ -15,6 +15,7 @@ import DoctorDetails from "./pages/doctors/details/DoctorDetails";
 import SlotBooking from "./pages/user/SlotBooking";
 import BookingPage from "./pages/user/BookingPage";
 import Appointment from "./pages/user/Appointments";
+import AppointmentDetails from "./pages/user/AppointmentDetails";
 
 import DoctorEmail from "./pages/doctors/auth/DoctorEmail";
 import DoctorVerifyOtp from "./pages/doctors/auth/DoctorVerifyOtp";
@@ -46,6 +47,7 @@ function App() {
             <Route path="/book-slot" element={<SlotBooking />} />
             <Route path="/book-appointment" element={<BookingPage />} />
             <Route path="/appointments" element={<Appointment />} />
+            <Route path="/appointments/:id" element={<AppointmentDetails />} />
 
             <Route path="/doctor/login" element={<DoctorEmail />} />
             <Route path="/doctor/verify" element={<DoctorVerifyOtp />} />
