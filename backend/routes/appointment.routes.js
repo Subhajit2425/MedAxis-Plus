@@ -10,6 +10,6 @@ router.post("/", appointmentController.bookAppointment);
 router.get("/", appointmentController.getUserAppointments);
 
 // Delete appointment
-router.delete("/:id", appointmentController.deleteAppointment);
+router.delete("/:id", appointmentController.cancelAppointment);
 
 module.exports = router;
