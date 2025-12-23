@@ -6,17 +6,9 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Card,
   CardContent,
   IconButton,
-  Button,
   Box,
   Chip,
   Snackbar,
@@ -25,101 +17,87 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Button,
+  Stack,
 } from "@mui/material";
-
 import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function Appointment() {
   const navigate = useNavigate();
   const userEmail = localStorage.getItem("userEmail");
 
-  useEffect(() => {
-    if (!userEmail) {
-      navigate("/login", { replace: true });
-    }
-  }, [userEmail, navigate]);
-
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleteId, setDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" // success | error | warning | info
+    severity: "success",
   });
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar({ open: true, message, severity });
   };
 
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const [deleteId, setDeleteId] = useState(null);
-  const [deleting, setDeleting] = useState(false);
-
-  const handleDeleteClick = (id) => {
-    setDeleteId(id);
-    setConfirmOpen(true);
-  };
-
-
-  const confirmDelete = async () => {
-  setDeleting(true);
-  try {
-    const userEmail = localStorage.getItem("userEmail");
-
-    await api.delete(`/api/appointments/${deleteId}`, {
-      params: { email: userEmail }
-    });
-
-    setAppointments(prev =>
-      prev.filter(item => item.id !== deleteId)
-    );
-
-    showSnackbar("Appointment canceled successfully", "success");
-  } catch {
-    showSnackbar("Failed to cancel appointment", "error");
-  } finally {
-    setDeleting(false);
-    setConfirmOpen(false);
-    setDeleteId(null);
-  }
-};
-
-
-
   useEffect(() => {
-    const userEmail = localStorage.getItem("userEmail");
-
     if (!userEmail) {
-      setError("You must be logged in to view appointments.");
-      setLoading(false);
+      navigate("/login", { replace: true });
       return;
     }
 
     api
-      .get(`/api/appointments`, {
-        params: { email: userEmail }
-      })
-      .then((response) => {
-        setAppointments(response.data);
+      .get("/api/appointments", { params: { email: userEmail } })
+      .then((res) => {
+        setAppointments(res.data);
         setLoading(false);
       })
       .catch(() => {
         setError("Unable to load appointments.");
         setLoading(false);
       });
-  }, []);
+  }, [navigate, userEmail]);
+
+  const handleCancelClick = (id) => {
+    setDeleteId(id);
+    setConfirmOpen(true);
+  };
+
+  const confirmCancel = async () => {
+    setDeleting(true);
+    try {
+      await api.put(`/api/appointments/${deleteId}/cancel`, {
+        params: { email: userEmail },
+      });
+
+      setAppointments((prev) =>
+        prev.map((a) =>
+          a.id === deleteId ? { ...a, status: "cancelled" } : a
+        )
+      );
+
+      showSnackbar("Appointment cancelled successfully");
+    } catch {
+      showSnackbar("Failed to cancel appointment", "error");
+    } finally {
+      setDeleting(false);
+      setConfirmOpen(false);
+      setDeleteId(null);
+    }
+  };
 
   /* -------------------- STATES -------------------- */
 
   if (loading) {
     return (
       <Container sx={{ textAlign: "center", mt: 8 }}>
-        <CircularProgress size={40} />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
-          Fetching your appointments…
+        <CircularProgress />
+        <Typography color="text.secondary" sx={{ mt: 2 }}>
+          Loading appointments…
         </Typography>
       </Container>
     );
@@ -136,15 +114,13 @@ export default function Appointment() {
   if (appointments.length === 0) {
     return (
       <Container sx={{ mt: 6 }}>
-        <Card elevation={3} sx={{ borderRadius: 3 }}>
-          <CardContent sx={{ textAlign: "center", py: 6 }}>
-            <Typography variant="h5" fontWeight={600}>
-              No Appointments Found
-            </Typography>
-            <Typography color="text.secondary" sx={{ mt: 1 }}>
-              You haven’t booked any appointments yet.
-            </Typography>
-          </CardContent>
+        <Card sx={{ borderRadius: 3, textAlign: "center", py: 6 }}>
+          <Typography variant="h5" fontWeight={600}>
+            No Appointments
+          </Typography>
+          <Typography color="text.secondary" sx={{ mt: 1 }}>
+            You don’t have any scheduled appointments.
+          </Typography>
         </Card>
       </Container>
     );
@@ -154,146 +130,104 @@ export default function Appointment() {
 
   return (
     <Container sx={{ mt: 6, mb: 6 }}>
-      <Box mb={3}>
+      <Box mb={4}>
         <Typography variant="h4" fontWeight={700}>
           My Appointments
         </Typography>
         <Typography color="text.secondary">
-          Manage your scheduled doctor visits
+          View and manage your upcoming visits
         </Typography>
       </Box>
 
-      <TableContainer
-        component={Paper}
-        elevation={4}
-        sx={{
-          borderRadius: 3,
-          overflowX: "auto",   // ✅ enable horizontal scroll
-          width: "100%"
-        }}
-      >
-        <Table sx={{ minWidth: 700 }}>
-          <TableHead>
-            <TableRow sx={{ backgroundColor: "#f5f7fb" }}>
-              <TableCell><b>Doctor</b></TableCell>
-              <TableCell><b>Patient</b></TableCell>
-              <TableCell><b>Mobile</b></TableCell>
-              <TableCell><b>Email</b></TableCell>
-              <TableCell><b>Date</b></TableCell>
-              <TableCell align="center"><b>Status</b></TableCell>
-              <TableCell align="center"><b>Action</b></TableCell>
-            </TableRow>
-          </TableHead>
-
-          <TableBody>
-            {appointments.map((appt) => (
-              <TableRow
-                key={appt.id}
-                hover
-                sx={{ "&:last-child td": { borderBottom: 0 } }}
+      <Stack spacing={2}>
+        {appointments.map((appt) => (
+          <Card
+            key={appt.id}
+            elevation={3}
+            sx={{
+              borderRadius: 3,
+              transition: "0.2s",
+              "&:hover": { boxShadow: 6 },
+            }}
+          >
+            <CardContent>
+              <Stack
+                direction={{ xs: "column", sm: "row" }}
+                alignItems={{ sm: "center" }}
+                justifyContent="space-between"
+                spacing={2}
               >
-                <TableCell>
-                  <Typography fontWeight={600}>
+                {/* LEFT */}
+                <Box>
+                  <Typography fontWeight={600} fontSize={18}>
                     {appt.doctor_name}
                   </Typography>
-                </TableCell>
 
-                <TableCell>
-                  {appt.first_name} {appt.last_name}
-                </TableCell>
+                  <Typography color="text.secondary" fontSize={14}>
+                    {new Date(appt.appointment_date).toLocaleDateString(undefined, {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      year: "numeric",
+                    })}
+                  </Typography>
+                </Box>
 
-                <TableCell>{appt.mobile_number}</TableCell>
-
-                <TableCell>
+                {/* RIGHT */}
+                <Stack direction="row" alignItems="center" spacing={2}>
                   <Chip
-                    label={appt.email}
-                    size="small"
-                    variant="outlined"
-                  />
-                </TableCell>
-
-                <TableCell>
-                  {new Date(appt.created_at).toLocaleDateString()}
-                </TableCell>
-
-                {/* STATUS */}
-                <TableCell align="center">
-                  <Chip
-                    label={appt.status}
-                    size="small"
+                    label={appt.status.toUpperCase()}
                     sx={{
                       fontWeight: 600,
                       color: "#fff",
                       backgroundColor:
                         appt.status === "pending"
-                          ? "#f59e0b"   // yellow
+                          ? "#f59e0b"
                           : appt.status === "approved"
-                            ? "#16a34a"   // green
-                            : "#dc2626"   // red
+                          ? "#16a34a"
+                          : "#dc2626",
                     }}
                   />
-                </TableCell>
 
-                {/* ACTION */}
-                <TableCell align="center">
                   {appt.status === "pending" && (
                     <IconButton
-                      onClick={() => handleDeleteClick(appt.id)}
                       color="error"
-                      disabled={confirmOpen}
+                      onClick={() => handleCancelClick(appt.id)}
                     >
                       <DeleteIcon />
                     </IconButton>
-
                   )}
-                </TableCell>
+                </Stack>
+              </Stack>
+            </CardContent>
+          </Card>
+        ))}
+      </Stack>
 
-              </TableRow>
-            ))}
-          </TableBody>
-
-        </Table>
-      </TableContainer>
-
+      {/* Snackbar */}
       <Snackbar
         open={snackbar.open}
-        autoHideDuration={5000}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
-        onClose={(event, reason) => {
-          if (reason === "clickaway") return;
-          setSnackbar({ ...snackbar, open: false });
-        }}
-        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+        autoHideDuration={4000}
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            borderRadius: 2,
-            boxShadow: 6,
-            width: "100%"
-          }}
-        >
+        <Alert severity={snackbar.severity} variant="filled">
           {snackbar.message}
         </Alert>
       </Snackbar>
 
+      {/* Confirm Dialog */}
       <Dialog open={confirmOpen} onClose={() => !deleting && setConfirmOpen(false)}>
-        <DialogTitle>Confirm Delete</DialogTitle>
-
+        <DialogTitle>Cancel Appointment</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            This appointment to the doctor will be canceled. Do you want to continue?
+            Are you sure you want to cancel this appointment?
           </DialogContentText>
         </DialogContent>
-
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>
-            Cancel
-          </Button>
-
-          <Button color="error" variant="contained" onClick={confirmDelete}>
-            Delete
+          <Button onClick={() => setConfirmOpen(false)}>No</Button>
+          <Button color="error" variant="contained" onClick={confirmCancel}>
+            Yes, Cancel
           </Button>
         </DialogActions>
       </Dialog>

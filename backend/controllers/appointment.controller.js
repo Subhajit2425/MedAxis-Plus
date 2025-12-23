@@ -22,12 +22,17 @@ exports.getUserAppointments = async (req, res) => {
     const [rows] = await db.execute(
       `
       SELECT
-        appointments.*,
-        doctors.name AS doctor_name
-      FROM appointments
-      JOIN doctors ON appointments.doctor_id = doctors.id
-      WHERE appointments.email = ?
-      ORDER BY appointments.created_at DESC
+        a.id,
+        a.doctor_id,
+        a.email,
+        a.status,
+        a.appointment_date,
+        a.created_at,
+        d.name AS doctor_name
+      FROM appointments a
+      JOIN doctors d ON a.doctor_id = d.id
+      WHERE a.email = ?
+      ORDER BY a.appointment_date DESC
       `,
       [userEmail]
     );
@@ -42,10 +47,10 @@ exports.getUserAppointments = async (req, res) => {
 
 
 /**
- * DELETE /api/appointments/:id
- * Delete appointment
+ * PUT /api/appointments/:id/cancel
+ * Cancel appointment (soft delete)
  */
-exports.deleteAppointment = async (req, res) => {
+exports.cancelAppointment = async (req, res) => {
   const appointmentId = req.params.id;
   const userEmail = req.query.email;
 
@@ -56,20 +61,21 @@ exports.deleteAppointment = async (req, res) => {
   try {
     const [result] = await db.execute(
       `
-      DELETE FROM appointments
+      UPDATE appointments
+      SET status = 'cancelled'
       WHERE id = ? AND email = ?
       `,
       [appointmentId, userEmail]
     );
 
     if (result.affectedRows === 0) {
-      return res.status(403).json({ error: "Unauthorized or not found" });
+      return res.status(403).json({ error: "Unauthorized or appointment not found" });
     }
 
-    res.json({ message: "Appointment deleted successfully" });
+    res.json({ message: "Appointment cancelled successfully" });
   } catch (err) {
-    console.error("Error deleting appointment:", err);
-    res.status(500).json({ error: "Failed to delete appointment" });
+    console.error("Error cancelling appointment:", err);
+    res.status(500).json({ error: "Failed to cancel appointment" });
   }
 };
 
