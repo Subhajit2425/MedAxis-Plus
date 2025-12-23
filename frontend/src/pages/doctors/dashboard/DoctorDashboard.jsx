@@ -136,7 +136,7 @@ export default function DoctorDashboard() {
             </Box>
             <Chip
               label="Verified"
-              color="success"
+              color="info"
               sx={{ ml: "auto", fontWeight: 600 }}
             />
           </Stack>
@@ -223,7 +223,7 @@ export default function DoctorDashboard() {
                       <Button
                         size="small"
                         variant="contained"
-                        color="success"
+                        color="info"
                         onClick={() =>
                           updateAppointmentStatus(appt.id, "confirmed")
                         }
