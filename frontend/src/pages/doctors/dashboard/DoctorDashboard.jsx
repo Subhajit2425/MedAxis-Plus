@@ -12,9 +12,11 @@ import {
   Button,
   Stack,
   Chip,
+  TextField,
+  Divider,
 } from "@mui/material";
-import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 import PersonIcon from "@mui/icons-material/Person";
+import EventAvailableIcon from "@mui/icons-material/EventAvailable";
 
 export default function DoctorDashboard() {
   const navigate = useNavigate();
@@ -25,7 +27,11 @@ export default function DoctorDashboard() {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // 🔐 Doctor access check
+  const [filter, setFilter] = useState("all");
+  const [selectedDate, setSelectedDate] = useState("");
+
+  /* ---------------- ACCESS CHECK ---------------- */
+
   useEffect(() => {
     if (!email) {
       navigate("/login", { replace: true });
@@ -36,22 +42,15 @@ export default function DoctorDashboard() {
       .get("/api/doctor/access", { params: { email } })
       .then((res) => {
         setAccess(res.data);
-
         if (res.data.canAccessBooking) {
           fetchDoctorProfile();
-          fetchAppointments();
         }
       })
       .catch(() => setAccess({ error: true }))
       .finally(() => setLoading(false));
   }, [email, navigate]);
 
-  const fetchAppointments = async () => {
-    const res = await api.get("/api/doctor/appointments", {
-      params: { email, status: "pending" },
-    });
-    setAppointments(res.data.appointments || []);
-  };
+  /* ---------------- DATA ---------------- */
 
   const fetchDoctorProfile = async () => {
     const res = await api.get("/api/doctor/profile", {
@@ -60,11 +59,28 @@ export default function DoctorDashboard() {
     setDoctor(res.data.doctor);
   };
 
+  const fetchAppointments = async () => {
+    const res = await api.get("/api/doctor/appointments", {
+      params: {
+        email,
+        status: filter === "all" ? undefined : filter,
+        date: selectedDate || undefined,
+      },
+    });
+    setAppointments(res.data.appointments || []);
+  };
+
+  useEffect(() => {
+    if (doctor) {
+      fetchAppointments();
+    }
+  }, [filter, selectedDate, doctor]);
+
   const updateAppointmentStatus = async (id, status) => {
     try {
       await api.put(
         `/api/doctor/appointments/${id}`,
-        { status }, // confirmed | rejected
+        { status },
         { params: { email } }
       );
       fetchAppointments();
@@ -73,15 +89,12 @@ export default function DoctorDashboard() {
     }
   };
 
-  // ---------------- UI STATES ----------------
+  /* ---------------- UI STATES ---------------- */
 
   if (loading) {
     return (
       <Container sx={{ textAlign: "center", mt: 8 }}>
-        <CircularProgress size={40} />
-        <Typography sx={{ mt: 2 }} color="text.secondary">
-          Loading doctor dashboard…
-        </Typography>
+        <CircularProgress />
       </Container>
     );
   }
@@ -91,82 +104,104 @@ export default function DoctorDashboard() {
   }
 
   if (!access.registered) {
+    return <Alert severity="info">Please register as a doctor.</Alert>;
+  }
+
+  if (access.requestStatus !== "approved") {
     return (
-      <Container sx={{ mt: 8 }}>
-        <Alert severity="info">
-          No doctor profile found. Please register.
-        </Alert>
-      </Container>
+      <Alert severity="warning">
+        Your profile is under review or rejected.
+      </Alert>
     );
   }
 
-  if (access.requestStatus === "pending") {
-    return (
-      <Container sx={{ mt: 8 }}>
-        <Alert severity="warning">
-          Your profile is under review.
-        </Alert>
-      </Container>
-    );
-  }
+  if (!doctor) return null;
 
-  if (access.requestStatus === "rejected") {
-    return (
-      <Container sx={{ mt: 8 }}>
-        <Alert severity="error">
-          Your application was rejected.
-        </Alert>
-        <Button sx={{ mt: 2 }} onClick={() => navigate("/doctor/register")}>
-          Re-apply
-        </Button>
-      </Container>
-    );
-  }
-
-  if (!doctor) {
-    return (
-      <Container sx={{ textAlign: "center", mt: 8 }}>
-        <CircularProgress size={40} />
-      </Container>
-    );
-  }
-
-  // ---------------- APPROVED DASHBOARD ----------------
+  /* ---------------- DASHBOARD ---------------- */
 
   return (
-    <Container sx={{ mt: 4 }}>
-      {/* Doctor Header */}
-      <Card sx={{ mb: 4 }}>
+    <Container sx={{ mt: 4, mb: 6 }}>
+      {/* Doctor Card */}
+      <Card sx={{ mb: 4, borderRadius: 3 }}>
         <CardContent>
           <Stack direction="row" spacing={2} alignItems="center">
-            <PersonIcon sx={{ fontSize: 40 }} />
+            <PersonIcon sx={{ fontSize: 44 }} />
             <Box>
-              <Typography variant="h5">Dr. {doctor.name}</Typography>
+              <Typography variant="h5" fontWeight={700}>
+                Dr. {doctor.name}
+              </Typography>
               <Typography color="text.secondary">
                 {doctor.specialization} • {doctor.experience} yrs
               </Typography>
             </Box>
-            <Chip label="Verified" color="info" sx={{ ml: "auto" }} />
+            <Chip
+              label="Verified"
+              color="success"
+              sx={{ ml: "auto", fontWeight: 600 }}
+            />
+          </Stack>
+        </CardContent>
+      </Card>
+
+      {/* Filters */}
+      <Card sx={{ mb: 4, borderRadius: 3 }}>
+        <CardContent>
+          <Stack spacing={3}>
+            {/* Date Picker */}
+            <Box>
+              <Typography fontWeight={600} mb={1}>
+                Select Date
+              </Typography>
+              <TextField
+                type="date"
+                size="small"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+              />
+            </Box>
+
+            <Divider />
+
+            {/* Status Filters */}
+            <Stack direction="row" spacing={1} flexWrap="wrap">
+              {[
+                { label: "All", value: "all" },
+                { label: "Approved", value: "confirmed" },
+                { label: "Pending", value: "pending" },
+                { label: "Rejected", value: "rejected" },
+                { label: "Cancelled", value: "cancelled" },
+              ].map((btn) => (
+                <Button
+                  key={btn.value}
+                  variant={filter === btn.value ? "contained" : "outlined"}
+                  onClick={() => setFilter(btn.value)}
+                  sx={{
+                    textTransform: "none",
+                    fontWeight: 600,
+                    borderRadius: 999,
+                  }}
+                >
+                  {btn.label}
+                </Button>
+              ))}
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
 
       {/* Appointments */}
-      <Typography variant="h6" gutterBottom>
-        Pending Appointments
-      </Typography>
-
       {appointments.length === 0 ? (
-        <Alert severity="info">No pending appointments.</Alert>
+        <Alert severity="info">
+          No {filter !== "all" ? filter : ""} appointments found.
+        </Alert>
       ) : (
         <Stack spacing={2}>
           {appointments.map((appt) => (
-            <Card key={appt.id} variant="outlined">
+            <Card key={appt.id} variant="outlined" sx={{ borderRadius: 3 }}>
               <CardContent>
                 <Stack
                   direction={{ xs: "column", sm: "row" }}
                   justifyContent="space-between"
-                  alignItems="center"
                   spacing={2}
                 >
                   <Box>
@@ -175,37 +210,38 @@ export default function DoctorDashboard() {
                       {appt.first_name} {appt.last_name}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
-                      📅 {appt.appointment_date} | ⏰{" "}
-                      {appt.start_time} - {appt.end_time}
+                      📅 {appt.appointment_date} | ⏰ {appt.start_time} -{" "}
+                      {appt.end_time}
                     </Typography>
                     <Typography variant="body2" color="text.secondary">
                       📞 {appt.mobile_number}
                     </Typography>
                   </Box>
 
-                  <Stack direction="row" spacing={1}>
-                    <Button
-                      variant="contained"
-                      color="info"
-                      size="small"
-                      onClick={() =>
-                        updateAppointmentStatus(appt.id, "confirmed")
-                      }
-                    >
-                      Confirm
-                    </Button>
-
-                    <Button
-                      variant="outlined"
-                      color="error"
-                      size="small"
-                      onClick={() =>
-                        updateAppointmentStatus(appt.id, "rejected")
-                      }
-                    >
-                      Reject
-                    </Button>
-                  </Stack>
+                  {appt.status === "pending" && (
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        size="small"
+                        variant="contained"
+                        color="success"
+                        onClick={() =>
+                          updateAppointmentStatus(appt.id, "confirmed")
+                        }
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        color="error"
+                        onClick={() =>
+                          updateAppointmentStatus(appt.id, "rejected")
+                        }
+                      >
+                        Reject
+                      </Button>
+                    </Stack>
+                  )}
                 </Stack>
               </CardContent>
             </Card>
