@@ -94,7 +94,7 @@ function App() {
             <Route path="/admin" element={<AdminDashboard />} />
 
             <Route path="/doctors" element={<Doctors />} />
-            <Route path="/doctor/:doctorId" element={<DoctorDetails />} />
+            <Route path="/doctors/:doctorId" element={<DoctorDetails />} />
 
             <Route path="/book-slot" element={<SlotBooking />} />
             <Route path="/book-appointment" element={<BookingPage />} />
