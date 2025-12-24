@@ -33,22 +33,41 @@ import PrivacyPolicy from "./pages/public/Privacy/PrivacyPolicy";
 import About from "./pages/public/About/About";
 
 function App() {
-  const [appStatus, setAppStatus] = useState("loading");
-  // loading | ready | error
+  const [appStatus, setAppStatus] = useState("loading");  // loading | ready | error
+  const MIN_LOADING_TIME = 2500; // 2.5 seconds
 
   const initializeApp = async () => {
+    const startTime = Date.now();
+
     try {
       setAppStatus("loading");
 
-      // 🔑 Lightweight backend wake-up
       await api.get("/api/health");
 
-      setAppStatus("ready");
+      const elapsed = Date.now() - startTime;
+      const remaining = MIN_LOADING_TIME - elapsed;
+
+      if (remaining > 0) {
+        setTimeout(() => {
+          setAppStatus("ready");
+        }, remaining);
+      } else {
+        setAppStatus("ready");
+      }
     } catch (err) {
-      console.error("App initialization failed:", err);
-      setAppStatus("error");
+      const elapsed = Date.now() - startTime;
+      const remaining = MIN_LOADING_TIME - elapsed;
+
+      if (remaining > 0) {
+        setTimeout(() => {
+          setAppStatus("error");
+        }, remaining);
+      } else {
+        setAppStatus("error");
+      }
     }
   };
+
 
   useEffect(() => {
     initializeApp();
@@ -62,7 +81,7 @@ function App() {
       />
     );
   }
-  
+
   return (
     <>
       <ScrollToTop />
