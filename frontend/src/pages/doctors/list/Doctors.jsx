@@ -133,7 +133,7 @@ export default function Doctors() {
               }}
             >
               <CardActionArea
-                onClick={() => navigate(`/doctor/${doc.id}`)} // ← Open Doctor Details Page
+                onClick={() => navigate(`/doctors/${doc.id}`)} // ← Open Doctor Details Page
               >
                 <CardContent>
                   <Box display="flex" alignItems="center" gap={2} mb={2}>

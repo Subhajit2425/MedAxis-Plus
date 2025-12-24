@@ -144,7 +144,7 @@ const Home = () => {
             <div
               className="doctor-card"
               key={doc.name}
-              onClick={() => navigate(`/doctor/${doc.id}`)}
+              onClick={() => navigate(`/doctors/${doc.id}`)}
             >
               <img
                 src="https://img.icons8.com/ios-filled/100/user.png"
