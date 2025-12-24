@@ -21,10 +21,15 @@ exports.getAllDoctors = async (req, res) => {
 exports.getDoctorById = async (req, res) => {
   const doctorId = req.params.id;
 
+  if (isNaN(doctorId)) {
+    return res.status(400).json({ error: "Invalid doctor ID" });
+  }
+
   try {
     const [rows] = await db.execute(
       `
-      SELECT id, name, specialization, experience, fees, address, latitude, longitude, email, created_at
+      SELECT id, name, specialization, experience, fees, address,
+             latitude, longitude, email, created_at
       FROM doctors
       WHERE id = ?
       `,
