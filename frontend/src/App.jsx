@@ -95,9 +95,9 @@ function App() {
 
             <Route path="/doctors" element={<Doctors />} />
             <Route path="/doctors/:doctorId" element={<DoctorDetails />} />
-
-            <Route path="/book-slot" element={<SlotBooking />} />
-            <Route path="/book-appointment" element={<BookingPage />} />
+            <Route path="/doctors/book-slot" element={<SlotBooking />} />
+            <Route path="/doctors/book-appointment" element={<BookingPage />} />
+            
             <Route path="/appointments" element={<Appointment />} />
             <Route path="/appointments/:id" element={<AppointmentDetails />} />
 

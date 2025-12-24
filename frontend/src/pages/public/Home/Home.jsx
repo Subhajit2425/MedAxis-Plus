@@ -163,7 +163,7 @@ const Home = () => {
 
                   if (localStorage.getItem("userEmail")) {
                     navigate(
-                      `/book-appointment?doctorId=${doc.id}&doctorName=${encodeURIComponent(
+                      `/doctors/book-slot?doctorId=${doc.id}&doctorName=${encodeURIComponent(
                         doc.name
                       )}`
                     );

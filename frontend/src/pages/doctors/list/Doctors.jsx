@@ -187,7 +187,7 @@ export default function Doctors() {
                   onClick={() => {
                     if (localStorage.getItem("userEmail")) {
                       navigate(
-                        `/book-slot?doctorId=${doc.id}&doctorName=${encodeURIComponent(
+                        `/doctors/book-slot?doctorId=${doc.id}&doctorName=${encodeURIComponent(
                           doc.name
                         )}`
                       );
