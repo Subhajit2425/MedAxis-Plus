@@ -56,16 +56,16 @@ export default function Doctors() {
   }, []);
 
   const filteredDoctors = doctors.filter((doc) => {
-  const q = searchTerm.toLowerCase();
+    const q = searchTerm.toLowerCase();
 
-  if (!q) return true;
+    if (!q) return true;
 
-  return (
-    doc.name.toLowerCase().includes(q) ||
-    doc.specialization.toLowerCase().includes(q) ||
-    doc.address.toLowerCase().includes(q)
-  );
-});
+    return (
+      doc.name.toLowerCase().includes(q) ||
+      doc.specialization.toLowerCase().includes(q) ||
+      doc.address.toLowerCase().includes(q)
+    );
+  });
 
 
   if (loading) {
@@ -192,7 +192,14 @@ export default function Doctors() {
                         )}`
                       );
                     } else {
-                      navigate("/login");
+                      navigate("/login", {
+                        state: {
+                          snackbar: {
+                            message: "Please login to book an appointment.",
+                            severity: "warning"
+                          }
+                        }
+                      });
                     }
                   }}
                 >

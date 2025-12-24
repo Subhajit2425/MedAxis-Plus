@@ -82,7 +82,14 @@ export default function DoctorDetails() {
                   )}`
                 );
               } else {
-                navigate("/login");
+                navigate("/login", {
+                  state: {
+                    snackbar: {
+                      message: "Please login to book an appointment.",
+                      severity: "warning"
+                    }
+                  }
+                });
               }
             }}
           >

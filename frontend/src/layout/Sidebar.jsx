@@ -29,7 +29,14 @@ export default function Sidebar({ open, setOpen }) {
     const email = localStorage.getItem("userEmail");
 
     if (!email) {
-      navigate("/login");
+      navigate("/login", {
+        state: {
+          snackbar: {
+            message: "Please login to open the doctor dashboard.",
+            severity: "warning"
+          }
+        }
+      });
       closeSidebar();
       return;
     }

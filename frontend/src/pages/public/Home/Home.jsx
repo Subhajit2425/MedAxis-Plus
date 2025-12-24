@@ -171,7 +171,7 @@ const Home = () => {
                     navigate("/login", {
                       state: {
                         snackbar: {
-                          message: "Please login to book an appointment",
+                          message: "Please login to book an appointment.",
                           severity: "warning"
                         }
                       }

@@ -27,7 +27,15 @@ export default function Contact() {
 
   useEffect(() => {
     if (!userEmail) {
-      navigate("/login", { replace: true });
+      navigate("/login", { replace: true }, {
+          state: {
+            snackbar: {
+              message: "Please login to manage the appointments.",
+              severity: "warning"
+            }
+          }
+        }
+      );
     }
   }, [userEmail, navigate]);
 
@@ -219,7 +227,7 @@ export default function Contact() {
                         borderRadius: 2,
                       }}
                       disabled={loading}
-                    >                   
+                    >
                       {loading ? <CircularProgress size={24} /> : "Send Message"}
                     </Button>
                   </Grid>
