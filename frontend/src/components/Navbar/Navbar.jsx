@@ -1,12 +1,10 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useEffect, useState } from "react";
 
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import MenuIcon from "@mui/icons-material/Menu";
 import "./Navbar.css";
 import logo from "../../assets/Logo512.png";
-
 
 export default function Navbar({ onMenuClick }) {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -15,16 +13,15 @@ export default function Navbar({ onMenuClick }) {
 
   useEffect(() => {
     setIsLoggedIn(!!localStorage.getItem("userEmail"));
-  }, [location.pathname]); // 🔥 re-check on route change
+  }, [location.pathname]);
 
   return (
     <nav className="navbar">
-      {/* LEFT CLUSTER */}
+      {/* LEFT */}
       <div className="navbar-left">
         <MenuIcon
           className="menu-icon"
           onClick={onMenuClick}
-          fontSize="large"
         />
 
         <Link to="/" className="brand">
@@ -35,27 +32,16 @@ export default function Navbar({ onMenuClick }) {
         </Link>
       </div>
 
-
+      {/* RIGHT */}
       <ul className="nav-links">
-        {/* Profile */}
         {isLoggedIn && (
           <li>
-            <Link
-              to="/profile"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                color: "inherit",
-                textDecoration: "none",
-              }}
-              className="profile-icon"
-            >
+            <Link to="/profile" className="profile-icon">
               <AccountCircleIcon />
             </Link>
           </li>
         )}
 
-        {/* Login */}
         {!isLoggedIn && (
           <li>
             <Link to="/login" className="login-btn">
