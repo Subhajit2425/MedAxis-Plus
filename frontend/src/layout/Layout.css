@@ -20,7 +20,7 @@
     linear-gradient(180deg, #020617 0%, #0b1224 50%, #0f172a 100%);
   
   padding: 18px 14px;
-  color: #e5e7eb;
+  color: #f1f5f9 !important;
 
   box-shadow:
     6px 0 30px rgba(2, 6, 23, 0.6),
@@ -84,7 +84,7 @@
   padding: 11px 14px;
   border-radius: 12px;
 
-  color: #cbd5f5;
+  color: #e5e7eb;   /* brighter, readable */
   text-decoration: none;
   background: transparent;
   border: none;
@@ -97,6 +97,7 @@
     color 0.2s ease,
     transform 0.15s ease,
     box-shadow 0.15s ease;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.04);
 }
 
 /* ICONS — FORCE VISIBILITY */
@@ -110,7 +111,7 @@
 /* Hover */
 .sidebar-nav a:hover,
 .sidebar-link:hover {
-  background: rgba(56, 189, 248, 0.12);
+  background: rgba(255, 255, 255, 0.08);
   color: #ffffff;
   transform: translateX(2px);
 }
