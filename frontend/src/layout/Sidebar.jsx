@@ -104,7 +104,7 @@ export default function Sidebar({ open, setOpen }) {
             </Link>
 
             <Link className={isDoctorsRoute() ? "active" : ""} to="/doctors" onClick={closeSidebar}>
-              <LocalHospital sx={sidebarIconSx(isActive("/doctors"))} /> Doctors
+              <LocalHospital sx={sidebarIconSx(isDoctorsRoute())} /> Doctors
             </Link>
 
             <Link className={isActive("/appointments")} to="/appointments" onClick={closeSidebar}>
