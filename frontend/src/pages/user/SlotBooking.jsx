@@ -29,37 +29,63 @@ export default function SlotBooking() {
   const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [showSlots, setShowSlots] = useState(false);
 
   useEffect(() => {
     if (!doctorId) navigate("/doctors");
   }, [doctorId, navigate]);
 
-  // 🔹 Fetch slots on date change
-  useEffect(() => {
-    if (!appointmentDate) return;
+  /* ================= HELPERS ================= */
 
-    const fetchSlots = async () => {
-      setLoading(true);
-      setSelectedSlot(null);
-      setError("");
+  const todayStr = new Date().toISOString().split("T")[0];
 
-      try {
-        const res = await api.get(
-          `/api/availability/doctor/${doctorId}/slots`,
-          { params: { date: appointmentDate } }
-        );
-        setSlots(res.data.slots || []);
-      } catch (err) {
-        console.error(err);
-        setError("Failed to load slots");
-        setSlots([]);
-      } finally {
-        setLoading(false);
-      }
-    };
+  const isPastDate = (date) => date < todayStr;
 
-    fetchSlots();
-  }, [appointmentDate, doctorId]);
+  const isToday = appointmentDate === todayStr;
+
+  const isPastTime = (time) => {
+    const now = new Date();
+    const [h, m] = time.split(":").map(Number);
+    const slotTime = new Date();
+    slotTime.setHours(h, m, 0, 0);
+    return slotTime < now;
+  };
+
+  /* ================= FETCH SLOTS ================= */
+
+  const handleFetchSlots = async () => {
+    setError("");
+    setSlots([]);
+    setSelectedSlot(null);
+    setShowSlots(false);
+
+    if (!appointmentDate) {
+      setError("Please select a date");
+      return;
+    }
+
+    if (isPastDate(appointmentDate)) {
+      setError("You cannot select a past date");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await api.get(
+        `/api/availability/doctor/${doctorId}/slots`,
+        { params: { date: appointmentDate } }
+      );
+      setSlots(res.data.slots || []);
+      setShowSlots(true);
+    } catch {
+      setError("Failed to load available slots");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ================= CONTINUE ================= */
 
   const handleContinue = () => {
     if (!selectedSlot) return;
@@ -76,53 +102,73 @@ export default function SlotBooking() {
 
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
-      <Card elevation={5} sx={{ borderRadius: 3 }}>
+      <Card elevation={4} sx={{ borderRadius: 4 }}>
         <CardContent sx={{ p: 4 }}>
-          <Typography variant="h5" fontWeight={600} gutterBottom>
+          <Typography variant="h5" fontWeight={700} gutterBottom>
             Select Appointment Slot
           </Typography>
 
           <Typography color="primary" gutterBottom>
-            With {doctorName}
+            With Dr. {doctorName}
           </Typography>
 
           <Divider sx={{ my: 3 }} />
 
-          {/* Date Picker */}
-          <Box mb={3}>
+          {/* DATE PICKER */}
+          <Box mb={2}>
             <TextField
               type="date"
-              label="Choose Appointment Date"
+              label="Appointment Date"
               fullWidth
               InputLabelProps={{ shrink: true }}
               value={appointmentDate}
-              onChange={(e) => setAppointmentDate(e.target.value)}
+              onChange={(e) => {
+                setAppointmentDate(e.target.value);
+                setShowSlots(false);
+                setSlots([]);
+                setError("");
+              }}
             />
           </Box>
 
-          {/* Slot Loader */}
+          {/* CHECK SLOTS BUTTON */}
+          <Button
+            fullWidth
+            variant="outlined"
+            size="large"
+            onClick={handleFetchSlots}
+            sx={{ mb: 3 }}
+          >
+            Check Available Slots
+          </Button>
+
+          {/* LOADER */}
           {loading && (
             <Box display="flex" justifyContent="center" my={3}>
               <CircularProgress />
             </Box>
           )}
 
-          {/* Error */}
+          {/* ERROR */}
           {error && <Alert severity="error">{error}</Alert>}
 
-          {/* Slots */}
-          {!loading && appointmentDate && (
+          {/* SLOTS */}
+          {showSlots && !loading && (
             <>
-              <Typography fontWeight={500} mb={2}>
+              <Typography fontWeight={600} mb={2}>
                 Available Slots
               </Typography>
 
               {slots.length === 0 && (
-                <Alert severity="info">No slots available for this day</Alert>
+                <Alert severity="info">No slots available for this date</Alert>
               )}
 
               <Grid container spacing={2}>
                 {slots.map((slot, idx) => {
+                  const disabled =
+                    !slot.available ||
+                    (isToday && isPastTime(slot.start_time));
+
                   const isSelected =
                     selectedSlot?.start_time === slot.start_time;
 
@@ -131,15 +177,16 @@ export default function SlotBooking() {
                       <Chip
                         label={`${slot.start_time} - ${slot.end_time}`}
                         clickable
+                        disabled={disabled}
                         color={isSelected ? "primary" : "default"}
                         variant={isSelected ? "filled" : "outlined"}
-                        disabled={!slot.available}
                         onClick={() => setSelectedSlot(slot)}
                         sx={{
                           width: "100%",
                           py: 2.5,
                           fontSize: "0.9rem",
                           borderRadius: 2,
+                          opacity: disabled ? 0.4 : 1,
                         }}
                       />
                     </Grid>
@@ -149,15 +196,12 @@ export default function SlotBooking() {
             </>
           )}
 
-          {/* Selected Summary */}
+          {/* SELECTED SUMMARY */}
           {selectedSlot && (
             <Box
               mt={4}
               p={2}
-              sx={{
-                background: "#f5f7fb",
-                borderRadius: 2,
-              }}
+              sx={{ background: "#f5f7fb", borderRadius: 2 }}
             >
               <Typography variant="body2" color="text.secondary">
                 Selected Slot
@@ -169,7 +213,7 @@ export default function SlotBooking() {
             </Box>
           )}
 
-          {/* Continue */}
+          {/* CONTINUE */}
           <Box mt={4}>
             <Button
               fullWidth
