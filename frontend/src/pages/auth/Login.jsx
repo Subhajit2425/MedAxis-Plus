@@ -15,9 +15,10 @@ import {
   Link,
   Snackbar,
 } from "@mui/material";
-import { useNavigate, Link as RouterLink } from "react-router-dom";
+import { useLocation, useNavigate, Link as RouterLink } from "react-router-dom";
 
 export default function LoginPage() {
+  const location = useLocation();
   const navigate = useNavigate();
 
   const [otpSent, setOtpSent] = useState(false);
@@ -32,7 +33,16 @@ export default function LoginPage() {
   });
 
   const showSnackbar = (message, severity = "success") => {
-    setSnackbar({ open: true, message, severity });
+    setSnackbar(prev => ({ ...prev, open: false }));
+
+    setTimeout(() => {
+      setSnackbar(prev => ({
+        ...prev,
+        open: true,
+        message,
+        severity
+      }));
+    }, 50);
   };
 
   const [formData, setFormData] = useState({
@@ -42,6 +52,20 @@ export default function LoginPage() {
     email: "",
     dateOfBirth: "",
   });
+
+  const snackbarShownRef = React.useRef(false);
+
+  useEffect(() => {
+    if (location.state?.snackbar && !snackbarShownRef.current) {
+      snackbarShownRef.current = true;
+
+      const { message, severity } = location.state.snackbar;
+      showSnackbar(message, severity);
+      navigate(location.pathname, { replace: true });
+    }
+  }, [location.state, navigate]);
+
+
 
   // 🔒 Redirect if already logged in
   useEffect(() => {
@@ -127,6 +151,7 @@ export default function LoginPage() {
     } catch {
       showSnackbar("Invalid or expired verification code", "error");
       setStatus("idle");
+      setOtp("");
     }
   };
 

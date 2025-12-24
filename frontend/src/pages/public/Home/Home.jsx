@@ -65,8 +65,14 @@ const Home = () => {
 
   const showSnackbar = (message, severity = "success") => {
     setSnackbar(prev => ({ ...prev, open: false }));
+
     setTimeout(() => {
-      setSnackbar({ open: true, message, severity });
+      setSnackbar(prev => ({
+        ...prev,
+        open: true,
+        message,
+        severity
+      }));
     }, 50);
   };
 
@@ -101,11 +107,6 @@ const Home = () => {
             value={heroSearch}
             onChange={(e) => setHeroSearch(e.target.value)}
           />
-          {/* <input
-            type="text"
-            placeholder="Enter city / location"
-            className="search-input"
-          /> */}
           <button className="search-btn" onClick={handleHeroSearch}>
             Search
           </button>
@@ -159,6 +160,7 @@ const Home = () => {
                 className="book-btn"
                 onClick={(e) => {
                   e.stopPropagation();
+
                   if (localStorage.getItem("userEmail")) {
                     navigate(
                       `/book-appointment?doctorId=${doc.id}&doctorName=${encodeURIComponent(
@@ -166,7 +168,14 @@ const Home = () => {
                       )}`
                     );
                   } else {
-                    navigate("/login");
+                    navigate("/login", {
+                      state: {
+                        snackbar: {
+                          message: "Please login to book an appointment",
+                          severity: "warning"
+                        }
+                      }
+                    });
                   }
                 }}
               >
