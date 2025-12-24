@@ -24,7 +24,7 @@ exports.getDoctorById = async (req, res) => {
   try {
     const [rows] = await db.execute(
       `
-      SELECT id, name, specialization, experience, fees, address, latitude, longitude
+      SELECT id, name, specialization, experience, fees, address, latitude, longitude, email, created_at
       FROM doctors
       WHERE id = ?
       `,
