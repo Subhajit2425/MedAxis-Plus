@@ -119,19 +119,20 @@
 }
 
 .profile-icon {
-  color: #e5e7eb; /* light gray (visible on dark bg) */
   display: flex;
   align-items: center;
+}
+
+/* FORCE color on MUI SVG */
+.profile-icon .MuiSvgIcon-root {
+  color: #e5e7eb !important;
+  font-size: 30px;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
-.profile-icon svg {
-  font-size: 30px; /* make it slightly larger */
-}
-
-.profile-icon:hover {
-  color: #38bdf8; /* premium blue on hover */
-  transform: scale(1.08);
+.profile-icon:hover .MuiSvgIcon-root {
+  color: #38bdf8 !important;
+  transform: scale(1.1);
 }
 
 
