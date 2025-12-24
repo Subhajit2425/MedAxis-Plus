@@ -1,28 +1,35 @@
+/* ================= PAGE ================= */
+
 .doctor-details-page {
   min-height: 100vh;
-  background: #f4f6f9;
+  background: linear-gradient(180deg, #f8fafc, #eef2f7);
   display: flex;
   justify-content: center;
-  padding: 40px 16px;
+  padding: 48px 16px;
 }
+
+/* ================= CARD ================= */
 
 .doctor-card-pro {
   width: 100%;
-  max-width: 900px;
+  max-width: 920px;
   background: #ffffff;
-  border-radius: 14px;
-  padding: 32px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+  border-radius: 18px;
+  padding: 36px;
+  box-shadow:
+    0 20px 40px rgba(15, 23, 42, 0.08),
+    0 4px 12px rgba(15, 23, 42, 0.04);
 }
 
-/* Header */
+/* ================= HEADER ================= */
+
 .doctor-header {
   display: flex;
   align-items: center;
-  gap: 20px;
-  border-bottom: 1px solid #eaeaea;
-  padding-bottom: 20px;
   justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 22px;
 }
 
 .doctor-header-left {
@@ -31,76 +38,122 @@
   gap: 20px;
 }
 
+/* Avatar */
 .doctor-avatar {
-  width: 64px;
-  height: 64px;
-  background: linear-gradient(135deg, #2563eb, #1e40af);
+  width: 68px;
+  height: 68px;
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
   color: white;
-  border-radius: 50%;
+  border-radius: 18px;
   display: flex;
   align-items: center;
   justify-content: center;
+  box-shadow: 0 10px 20px rgba(37, 99, 235, 0.35);
 }
 
+/* Name & specialization */
 .doctor-name {
-  font-size: 28px;
-  font-weight: 600;
-  color: #111827;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #0f172a;
   margin: 0;
 }
 
 .doctor-spec {
-  color: #6b7280;
-  font-size: 14px;
+  color: #64748b;
+  font-size: 0.95rem;
   margin-top: 4px;
 }
 
-/* Info grid */
+/* ================= INFO GRID ================= */
+
 .doctor-info-grid {
-  margin-top: 28px;
+  margin-top: 32px;
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
+  gap: 28px;
 }
 
 .info-item {
   display: flex;
   gap: 14px;
+  align-items: flex-start;
 }
 
 .info-item.full {
   grid-column: span 2;
 }
 
+/* Icons */
 .info-icon {
   font-size: 18px;
   color: #2563eb;
   margin-top: 4px;
 }
 
+/* Labels & values */
 .info-label {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #64748b;
   margin-bottom: 4px;
 }
 
 .info-value {
-  font-size: 16px;
-  font-weight: 500;
-  color: #111827;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.4;
 }
 
-/* Footer */
-.doctor-footer {
+/* ================= MAP ================= */
+
+.map-container {
   margin-top: 32px;
-  padding-top: 16px;
-  border-top: 1px dashed #e5e7eb;
-  font-size: 14px;
-  color: #6b7280;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
 }
 
-/* Mobile */
+/* ================= FOOTER ================= */
+
+.doctor-footer {
+  margin-top: 36px;
+  padding-top: 18px;
+  border-top: 1px dashed #e5e7eb;
+  font-size: 0.9rem;
+  color: #64748b;
+}
+
+/* ================= BUTTON ================= */
+
+.book-appointment-btn {
+  background: linear-gradient(135deg, #2563eb, #38bdf8);
+  color: white;
+  border: none;
+  padding: 12px 26px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(37, 99, 235, 0.35);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.book-appointment-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 14px 32px rgba(37, 99, 235, 0.45);
+}
+
+/* ================= MOBILE ================= */
+
 @media (max-width: 600px) {
+  .doctor-card-pro {
+    padding: 24px;
+  }
+
   .doctor-info-grid {
     grid-template-columns: 1fr;
   }
@@ -108,25 +161,10 @@
   .info-item.full {
     grid-column: span 1;
   }
-}
 
-.book-appointment-btn {
-  background: linear-gradient(135deg, #2563eb, #1e40af);
-  color: white;
-  border: none;
-  padding: 10px 18px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  .doctor-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
 }
-
-.book-appointment-btn:hover {
-  opacity: 0.9;
-  transform: translateY(-1px);
-}
-
-.map-container {
-  margin-top: 24px;
-}
-

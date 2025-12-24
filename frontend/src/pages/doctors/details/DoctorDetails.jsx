@@ -5,7 +5,9 @@ import {
   FaBriefcase,
   FaMapMarkerAlt,
   FaRupeeSign,
-  FaUserNurse
+  FaUserNurse,
+  FaEnvelope,
+  FaCalendarAlt
 } from "react-icons/fa";
 import { useParams, useNavigate } from "react-router-dom";
 import "./DoctorDetails.css";
@@ -15,11 +17,10 @@ import {
   Typography,
   CircularProgress,
   Alert,
-  colors
 } from "@mui/material";
 
 export default function DoctorDetails() {
-  const { doctorId } = useParams(); // from route
+  const { doctorId } = useParams();
   const navigate = useNavigate();
 
   const [doctor, setDoctor] = useState(null);
@@ -33,7 +34,7 @@ export default function DoctorDetails() {
         setDoctor(res.data);
         setLoading(false);
       })
-      .catch((err) => {
+      .catch(() => {
         setError("Failed to load doctor details");
         setLoading(false);
       });
@@ -43,7 +44,7 @@ export default function DoctorDetails() {
     return (
       <Container sx={{ textAlign: "center", mt: 10 }}>
         <CircularProgress />
-        <Typography mt={2}>Loading Doctor Details...</Typography>
+        <Typography mt={2}>Loading doctor profile…</Typography>
       </Container>
     );
   }
@@ -59,19 +60,20 @@ export default function DoctorDetails() {
   return (
     <div className="doctor-details-page">
       <div className="doctor-card-pro">
-        {/* Header */}
+
+        {/* ================= HEADER ================= */}
         <div className="doctor-header">
           <div className="doctor-header-left">
             <div className="doctor-avatar">
-              <FaUserNurse style={{ color: "white" }} size={34} />
+              <FaUserNurse size={32} />
             </div>
-            <div>
+
+            <div className="doctor-basic">
               <h1 className="doctor-name">{doctor.name}</h1>
               <p className="doctor-spec">{doctor.specialization}</p>
             </div>
           </div>
 
-          {/* Book Appointment Button */}
           <button
             className="book-appointment-btn"
             onClick={() => {
@@ -86,20 +88,20 @@ export default function DoctorDetails() {
                   state: {
                     snackbar: {
                       message: "Please login to book an appointment.",
-                      severity: "warning"
-                    }
-                  }
+                      severity: "warning",
+                    },
+                  },
                 });
               }
             }}
           >
             Book Appointment
           </button>
-
         </div>
 
-        {/* Info Grid */}
+        {/* ================= INFO GRID ================= */}
         <div className="doctor-info-grid">
+
           <div className="info-item">
             <FaBriefcase className="info-icon" />
             <div>
@@ -116,6 +118,24 @@ export default function DoctorDetails() {
             </div>
           </div>
 
+          <div className="info-item">
+            <FaEnvelope className="info-icon" />
+            <div>
+              <p className="info-label">Email</p>
+              <p className="info-value">{doctor.email}</p>
+            </div>
+          </div>
+
+          <div className="info-item">
+            <FaCalendarAlt className="info-icon" />
+            <div>
+              <p className="info-label">Member Since</p>
+              <p className="info-value">
+                {new Date(doctor.created_at).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+
           <div className="info-item full">
             <FaMapMarkerAlt className="info-icon" />
             <div>
@@ -123,27 +143,26 @@ export default function DoctorDetails() {
               <p className="info-value">{doctor.address}</p>
             </div>
           </div>
-
-          {doctor.latitude && doctor.longitude && (
-            <div className="map-container">
-              <iframe
-                title="Doctor Location"
-                width="100%"
-                height="250"
-                loading="lazy"
-                style={{ border: 0, borderRadius: "12px" }}
-                src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
-              ></iframe>
-            </div>
-          )}
-
-
         </div>
 
-        {/* Footer */}
+        {/* ================= MAP ================= */}
+        {doctor.latitude && doctor.longitude && (
+          <div className="map-container">
+            <iframe
+              title="Doctor Location"
+              width="100%"
+              height="260"
+              loading="lazy"
+              style={{ border: 0, borderRadius: "14px" }}
+              src={`https://www.google.com/maps?q=${doctor.latitude},${doctor.longitude}&z=15&output=embed`}
+            ></iframe>
+          </div>
+        )}
+
+        {/* ================= FOOTER ================= */}
         <div className="doctor-footer">
-          Qualifications, availability, reviews and booking details will be
-          displayed here.
+          Verified medical professional. Appointment availability, reviews and
+          clinic timings will be displayed here.
         </div>
       </div>
     </div>
