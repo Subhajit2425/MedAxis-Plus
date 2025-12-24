@@ -26,12 +26,12 @@ export default function Sidebar({ open, setOpen }) {
   };
 
   // sidebarIconStyle.js
-  const sidebarIconSx = {
+  const sidebarIconSx = (active) => ({
     '& path': {
-      fill: '#cbd5e1',
+      fill: active ? '#0f172a' : '#cbd5e1',
       transition: 'fill 0.2s ease'
     }
-  };
+  });
 
 
   const handleDoctorDashboard = async () => {
@@ -98,15 +98,15 @@ export default function Sidebar({ open, setOpen }) {
             <div className="sidebar-group-title">EXPLORE</div>
 
             <Link className={isActive("/")} to="/" onClick={closeSidebar}>
-              <Home sx={sidebarIconSx} /> Home
+              <Home sx={sidebarIconSx(isActive("/"))} /> Home
             </Link>
 
             <Link className={isActive("/doctors")} to="/doctors" onClick={closeSidebar}>
-              <LocalHospital sx={sidebarIconSx} /> Doctors
+              <LocalHospital sx={sidebarIconSx(isActive("/doctors"))} /> Doctors
             </Link>
 
             <Link className={isActive("/appointments")} to="/appointments" onClick={closeSidebar}>
-              <Event sx={sidebarIconSx} /> Appointments
+              <Event sx={sidebarIconSx(isActive("/appointments"))} /> Appointments
             </Link>
           </div>
 
@@ -118,7 +118,7 @@ export default function Sidebar({ open, setOpen }) {
               className={`sidebar-link ${isActive("/doctor/dashboard")}`}
               onClick={handleDoctorDashboard}
             >
-              <MedicalServices sx={sidebarIconSx} /> Doctor Dashboard
+              <MedicalServices sx={sidebarIconSx(isActive("/doctor/dashboard"))} /> Doctor Dashboard
             </button>
           </div>
 
@@ -127,19 +127,19 @@ export default function Sidebar({ open, setOpen }) {
             <div className="sidebar-group-title">MORE</div>
 
             <Link className={isActive("/contact")} to="/contact" onClick={closeSidebar}>
-              <ContactSupport sx={sidebarIconSx} /> Contact Us
+              <ContactSupport sx={sidebarIconSx(isActive("/contact"))} /> Contact Us
             </Link>
 
             <Link className={isActive("/feedback")} to="/feedback" onClick={closeSidebar}>
-              <Feedback sx={sidebarIconSx} /> Feedback
+              <Feedback sx={sidebarIconSx(isActive("/feedback"))} /> Feedback
             </Link>
 
             <Link className={isActive("/privacy")} to="/privacy" onClick={closeSidebar}>
-              <PrivacyTip sx={sidebarIconSx} /> Privacy Policy
+              <PrivacyTip sx={sidebarIconSx(isActive("/privacy"))} /> Privacy Policy
             </Link>
 
             <Link className={isActive("/about")} to="/about" onClick={closeSidebar}>
-              <Info sx={sidebarIconSx} /> About
+              <Info sx={sidebarIconSx(isActive("/about"))} /> About
             </Link>
           </div>
 
@@ -149,7 +149,7 @@ export default function Sidebar({ open, setOpen }) {
               <div className="sidebar-group-title">ADMIN USE</div>
 
               <Link className={isActive("/admin")} to="/admin" onClick={closeSidebar}>
-                <AdminPanelSettings sx={sidebarIconSx} /> Admin Dashboard
+                <AdminPanelSettings sx={sidebarIconSx(isActive("/admin"))} /> Admin Dashboard
               </Link>
             </div>
           )}
