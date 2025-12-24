@@ -37,7 +37,13 @@ export default function Navbar({ onMenuClick }) {
         {isLoggedIn && (
           <li>
             <Link to="/profile" className="profile-icon">
-              <AccountCircleIcon sx={{ color: "#e5e7eb", fontSize: 30 }} />
+              <AccountCircleIcon
+                sx={{
+                  color: "#ffffff",
+                  opacity: 1,
+                  fontSize: 30
+                }}
+              />
             </Link>
           </li>
         )}

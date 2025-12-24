@@ -133,6 +133,7 @@
 .profile-icon:hover .MuiSvgIcon-root {
   color: #38bdf8 !important;
   transform: scale(1.1);
+  opacity: 1 !important;
 }
 
 
