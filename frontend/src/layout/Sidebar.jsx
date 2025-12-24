@@ -21,6 +21,8 @@ export default function Sidebar({ open, setOpen }) {
   const isActive = (path) =>
     location.pathname === path ? "active" : "";
 
+  const isDoctorsRoute = () => location.pathname.startsWith("/doctors");
+
   const closeSidebar = () => {
     setOpen(false);
   };
@@ -101,7 +103,7 @@ export default function Sidebar({ open, setOpen }) {
               <Home sx={sidebarIconSx(isActive("/"))} /> Home
             </Link>
 
-            <Link className={isActive("/doctors")} to="/doctors" onClick={closeSidebar}>
+            <Link className={isDoctorsRoute() ? "active" : ""} to="/doctors" onClick={closeSidebar}>
               <LocalHospital sx={sidebarIconSx(isActive("/doctors"))} /> Doctors
             </Link>
 
