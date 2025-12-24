@@ -139,6 +139,12 @@
   font-weight: 600;
 }
 
+.sidebar-link.active svg,
+.sidebar-link.active svg path {
+  fill: #0f172a !important;
+  color: #0f172a !important;
+}
+
 /* ================= MOBILE RESPONSIVE ================= */
 
 @media (max-width: 900px) {

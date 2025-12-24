@@ -28,11 +28,8 @@ export default function Sidebar({ open, setOpen }) {
   // sidebarIconStyle.js
   const sidebarIconSx = {
     '& path': {
-      fill: '#e5e7eb',
+      fill: '#cbd5e1',
       transition: 'fill 0.2s ease'
-    },
-    '&:hover path': {
-      fill: '#38bdf8'
     }
   };
 
