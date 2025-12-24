@@ -22,6 +22,20 @@ export default function Navbar({ onMenuClick }) {
         <MenuIcon
           className="menu-icon"
           onClick={onMenuClick}
+          sx={{
+            fontSize: 30,
+            cursor: 'pointer',
+            '& path': {
+              fill: '#e5e7eb',
+              transition: 'fill 0.2s ease'
+            },
+            '&:hover': {
+              transform: 'scale(1.08)'
+            },
+            '&:hover path': {
+              fill: '#38bdf8'
+            }
+          }}
         />
 
         <Link to="/" className="brand">
