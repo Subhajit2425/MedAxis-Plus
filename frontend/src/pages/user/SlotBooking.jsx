@@ -64,7 +64,7 @@ export default function SlotBooking() {
   const handleContinue = () => {
     if (!selectedSlot) return;
 
-    navigate("/book-appointment", {
+    navigate("/doctors/book-appointment", {
       state: {
         doctorId,
         doctorName,
