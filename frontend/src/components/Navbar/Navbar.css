@@ -118,18 +118,22 @@
   box-shadow: 0 10px 24px rgba(37, 99, 235, 0.45);
 }
 
-/* Profile icon */
 .profile-icon {
-  color: #cbd5f5;
+  color: #e5e7eb; /* light gray (visible on dark bg) */
   display: flex;
   align-items: center;
   transition: color 0.2s ease, transform 0.2s ease;
 }
 
+.profile-icon svg {
+  font-size: 30px; /* make it slightly larger */
+}
+
 .profile-icon:hover {
-  color: #ffffff;
+  color: #38bdf8; /* premium blue on hover */
   transform: scale(1.08);
 }
+
 
 /* ================= MOBILE ONLY ================= */
 
