@@ -1,5 +1,8 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
+import { useEffect, useState } from "react";
+import AppLoader from "./components/AppLoader/AppLoader";
+import api from "./api/api";
 
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import ScrollToTop from "./ScrollToTop";
@@ -30,6 +33,36 @@ import PrivacyPolicy from "./pages/public/Privacy/PrivacyPolicy";
 import About from "./pages/public/About/About";
 
 function App() {
+  const [appStatus, setAppStatus] = useState("loading");
+  // loading | ready | error
+
+  const initializeApp = async () => {
+    try {
+      setAppStatus("loading");
+
+      // 🔑 Lightweight backend wake-up
+      await api.get("/api/health");
+
+      setAppStatus("ready");
+    } catch (err) {
+      console.error("App initialization failed:", err);
+      setAppStatus("error");
+    }
+  };
+
+  useEffect(() => {
+    initializeApp();
+  }, []);
+
+  if (appStatus !== "ready") {
+    return (
+      <AppLoader
+        status={appStatus}
+        onRetry={initializeApp}
+      />
+    );
+  }
+  
   return (
     <>
       <ScrollToTop />
