@@ -22,6 +22,9 @@ export default function Sidebar({ open, setOpen }) {
     location.pathname === path ? "active" : "";
 
   const isDoctorsRoute = () => location.pathname.startsWith("/doctors");
+  const isAppointmentsRoute = () => location.pathname.startsWith("/appointments");
+  const isDoctorRoute = () => location.pathname.startsWith("/doctor/");
+  
 
   const closeSidebar = () => {
     setOpen(false);
@@ -107,8 +110,8 @@ export default function Sidebar({ open, setOpen }) {
               <LocalHospital sx={sidebarIconSx(isDoctorsRoute())} /> Doctors
             </Link>
 
-            <Link className={isActive("/appointments")} to="/appointments" onClick={closeSidebar}>
-              <Event sx={sidebarIconSx(isActive("/appointments"))} /> Appointments
+            <Link className={isAppointmentsRoute() ? "active" : ""} to="/appointments" onClick={closeSidebar}>
+              <Event sx={sidebarIconSx(isAppointmentsRoute())} /> Appointments
             </Link>
           </div>
 
@@ -117,10 +120,10 @@ export default function Sidebar({ open, setOpen }) {
             <div className="sidebar-group-title">DOCTOR USE</div>
 
             <button
-              className={`sidebar-link ${isActive("/doctor/dashboard")}`}
+              className={`sidebar-link ${isDoctorRoute() ? "active" : ""}`}
               onClick={handleDoctorDashboard}
             >
-              <MedicalServices sx={sidebarIconSx(isActive("/doctor/dashboard"))} /> Doctor Dashboard
+              <MedicalServices sx={sidebarIconSx(isDoctorRoute())} /> Doctor Dashboard
             </button>
           </div>
 
