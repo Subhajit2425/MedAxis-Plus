@@ -17,7 +17,8 @@ import {
   TextField,
   InputAdornment,
   Alert,
-  Paper
+  Paper,
+  Divider
 } from "@mui/material";
 
 import LocalHospitalIcon from "@mui/icons-material/LocalHospital";
@@ -33,14 +34,11 @@ export default function Doctors() {
 
   const search = searchParams.get("search") || "";
   const specialization = searchParams.get("specialization") || "";
-
   const [searchTerm, setSearchTerm] = useState(search || specialization);
-
 
   useEffect(() => {
     setSearchTerm(search || specialization);
   }, [search, specialization]);
-
 
   useEffect(() => {
     api
@@ -57,7 +55,6 @@ export default function Doctors() {
 
   const filteredDoctors = doctors.filter((doc) => {
     const q = searchTerm.toLowerCase();
-
     if (!q) return true;
 
     return (
@@ -67,12 +64,12 @@ export default function Doctors() {
     );
   });
 
-
+  /* ================= LOADING ================= */
   if (loading) {
     return (
       <Container sx={{ textAlign: "center", mt: 10 }}>
         <CircularProgress />
-        <Typography mt={2}>Loading Doctors...</Typography>
+        <Typography mt={2}>Loading doctors…</Typography>
       </Container>
     );
   }
@@ -86,24 +83,40 @@ export default function Doctors() {
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4 }}>
-      {/* PAGE TITLE */}
+    <Container maxWidth="lg" sx={{ mt: 4, pb: 6 }}>
+      {/* ================= HEADER ================= */}
       <Typography
         variant="h4"
         fontWeight={700}
         textAlign="center"
-        mb={4}
-        sx={{ letterSpacing: "0.5px" }}
+        mb={1}
       >
-        Find Your Doctor
+        Find & Book Trusted Doctors
       </Typography>
 
-      {/* SEARCH BAR */}
-      <Paper elevation={3} sx={{ p: 2, mb: 4, borderRadius: 3 }}>
+      <Typography
+        variant="body1"
+        textAlign="center"
+        color="text.secondary"
+        mb={4}
+      >
+        Search by name, specialization, or location
+      </Typography>
+
+      {/* ================= SEARCH ================= */}
+      <Paper
+        elevation={2}
+        sx={{
+          p: 2.5,
+          mb: 4,
+          borderRadius: 3,
+          maxWidth: 720,
+          mx: "auto"
+        }}
+      >
         <TextField
-          label="Search by Name or Specialization or Location"
-          variant="outlined"
           fullWidth
+          placeholder="Search doctors, specialization, location…"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           InputProps={{
@@ -116,73 +129,87 @@ export default function Doctors() {
         />
       </Paper>
 
-      {/* DOCTOR CARDS */}
+      {/* ================= CARDS ================= */}
       <Grid container spacing={3}>
         {filteredDoctors.map((doc) => (
-          <Grid item xs={12} sm={6} md={4} key={doc.id}>
+          <Grid
+            item
+            key={doc.id}
+            xs={12}          // ✅ FULL WIDTH ON MOBILE
+            sm={6}
+            md={4}
+          >
             <Card
-              elevation={4}
+              elevation={0}
               sx={{
                 height: "100%",
-                borderRadius: 3,
-                transition: "0.3s",
+                borderRadius: 4,
+                border: "1px solid #e5e7eb",
+                transition: "all 0.25s ease",
                 "&:hover": {
-                  transform: "translateY(-5px)",
-                  boxShadow: 6,
+                  transform: "translateY(-6px)",
+                  boxShadow: "0 20px 40px rgba(15,23,42,0.12)",
                 },
               }}
             >
               <CardActionArea
-                onClick={() => navigate(`/doctors/${doc.id}`)} // ← Open Doctor Details Page
+                onClick={() => navigate(`/doctors/${doc.id}`)}
+                sx={{ p: 2 }}
               >
-                <CardContent>
-                  <Box display="flex" alignItems="center" gap={2} mb={2}>
-                    <Avatar
-                      sx={{
-                        bgcolor: "#1976d2",
-                        width: 60,
-                        height: 60,
-                        boxShadow: 2,
-                      }}
-                    >
-                      <LocalHospitalIcon sx={{ fontSize: 32 }} />
-                    </Avatar>
+                <Box display="flex" gap={2} alignItems="center" mb={2}>
+                  <Avatar
+                    sx={{
+                      width: 64,
+                      height: 64,
+                      bgcolor: "primary.main",
+                      boxShadow: 3,
+                    }}
+                  >
+                    <LocalHospitalIcon sx={{ fontSize: 32 }} />
+                  </Avatar>
 
-                    <Box>
-                      <Typography variant="h6" fontWeight={600}>
-                        {doc.name}
-                      </Typography>
-                      <Typography variant="body2" color="primary">
-                        {doc.specialization}
-                      </Typography>
-                    </Box>
-                  </Box>
-
-                  <Typography variant="body2" color="text.secondary">
-                    Experience: <b>{doc.experience}</b>
-                  </Typography>
-
-                  <Typography variant="body2" color="text.secondary" mt={0.5}>
-                    Fees: <b>₹{doc.fees}</b>
-                  </Typography>
-
-                  <Box display="flex" alignItems="center" mt={1}>
-                    <LocationOnIcon sx={{ fontSize: 18, color: "gray" }} />
-                    <Typography variant="body2" ml={0.5} color="text.secondary">
-                      {doc.address}
+                  <Box>
+                    <Typography variant="h6" fontWeight={600}>
+                      {doc.name}
+                    </Typography>
+                    <Typography variant="body2" color="primary">
+                      {doc.specialization}
                     </Typography>
                   </Box>
-                </CardContent>
+                </Box>
+
+                <Divider sx={{ mb: 1.5 }} />
+
+                <Typography variant="body2" color="text.secondary">
+                  Experience: <b>{doc.experience} years</b>
+                </Typography>
+
+                <Typography variant="body2" color="text.secondary" mt={0.5}>
+                  Consultation Fees: <b>₹{doc.fees}</b>
+                </Typography>
+
+                <Box display="flex" alignItems="center" mt={1}>
+                  <LocationOnIcon sx={{ fontSize: 18, color: "gray" }} />
+                  <Typography
+                    variant="body2"
+                    ml={0.5}
+                    color="text.secondary"
+                    noWrap
+                  >
+                    {doc.address}
+                  </Typography>
+                </Box>
               </CardActionArea>
 
-              <CardActions sx={{ p: 2 }}>
+              <CardActions sx={{ px: 2, pb: 2 }}>
                 <Button
                   fullWidth
                   variant="contained"
+                  size="large"
                   sx={{
                     textTransform: "none",
                     fontWeight: 600,
-                    borderRadius: 2,
+                    borderRadius: 999,
                   }}
                   onClick={() => {
                     if (localStorage.getItem("userEmail")) {
@@ -196,9 +223,9 @@ export default function Doctors() {
                         state: {
                           snackbar: {
                             message: "Please login to book an appointment.",
-                            severity: "warning"
-                          }
-                        }
+                            severity: "warning",
+                          },
+                        },
                       });
                     }
                   }}
@@ -216,9 +243,9 @@ export default function Doctors() {
           variant="h6"
           textAlign="center"
           color="text.secondary"
-          mt={5}
+          mt={6}
         >
-          No doctors found matching "{searchTerm}"
+          No doctors found for “{searchTerm}”
         </Typography>
       )}
     </Container>
