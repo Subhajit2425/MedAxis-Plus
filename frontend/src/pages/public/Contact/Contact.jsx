@@ -27,17 +27,19 @@ export default function Contact() {
 
   useEffect(() => {
     if (!userEmail) {
-      navigate("/login", { replace: true }, {
-          state: {
-            snackbar: {
-              message: "Please login to manage the appointments.",
-              severity: "warning"
-            }
+      navigate("/login", {
+        replace: true,
+        state: {
+          snackbar: {
+            message: "Please login to contact us.",
+            severity: "warning"
           }
         }
-      );
+      });
+      return;
     }
   }, [userEmail, navigate]);
+
 
   // ⛔ Prevent rendering while redirecting
   if (!userEmail) return null;

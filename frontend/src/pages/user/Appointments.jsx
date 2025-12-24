@@ -54,15 +54,15 @@ export default function Appointment() {
 
   useEffect(() => {
     if (!userEmail) {
-      navigate("/login", { replace: true }, {
-          state: {
-            snackbar: {
-              message: "Please login to manage the appointments.",
-              severity: "warning"
-            }
+      navigate("/login", {
+        replace: true,
+        state: {
+          snackbar: {
+            message: "Please login to manage the appointments.",
+            severity: "warning"
           }
         }
-      );
+      });
       return;
     }
 
