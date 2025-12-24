@@ -115,6 +115,11 @@
   transform: translateX(2px);
 }
 
+.sidebar-nav a:hover svg,
+.sidebar-link:hover svg {
+  color: #e5e7eb !important;
+}
+
 /* Active */
 .sidebar-nav a.active,
 .sidebar-link.active {
