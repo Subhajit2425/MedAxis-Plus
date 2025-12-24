@@ -134,13 +134,13 @@ export default function SlotBooking() {
           {/* CHECK SLOTS BUTTON */}
           <Button
             fullWidth
-            variant="outlined"
+            variant="contained"
             size="large"
             onClick={handleFetchSlots}
-            sx={{ mb: 3 }}
           >
             Check Available Slots
           </Button>
+          
 
           {/* LOADER */}
           {loading && (
