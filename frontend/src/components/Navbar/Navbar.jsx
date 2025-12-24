@@ -39,9 +39,14 @@ export default function Navbar({ onMenuClick }) {
             <Link to="/profile" className="profile-icon">
               <AccountCircleIcon
                 sx={{
-                  color: "#ffffff",
-                  opacity: 1,
-                  fontSize: 30
+                  fontSize: 30,
+                  transition: 'fill 0.2s ease',
+                  '& path': {
+                    fill: '#e5e7eb'
+                  },
+                  '&:hover path': {
+                    fill: '#38bdf8'
+                  }
                 }}
               />
             </Link>
