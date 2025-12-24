@@ -21,9 +21,7 @@ export default function Sidebar({ open, setOpen }) {
   const isActive = (path) =>
     location.pathname === path ? "active" : "";
 
-  const closeSidebar = () => {
-    setOpen(false);
-  };
+  const closeSidebar = () => setOpen(false);
 
   const handleDoctorDashboard = async () => {
     const email = localStorage.getItem("userEmail");
@@ -33,9 +31,9 @@ export default function Sidebar({ open, setOpen }) {
         state: {
           snackbar: {
             message: "Please login to open the doctor dashboard.",
-            severity: "warning"
-          }
-        }
+            severity: "warning",
+          },
+        },
       });
       closeSidebar();
       return;
@@ -53,19 +51,12 @@ export default function Sidebar({ open, setOpen }) {
         hasAvailability,
       } = res.data;
 
-      if (!registered) {
-        navigate("/doctor/entry");
-      } else if (requestStatus === "pending" || requestStatus === "rejected") {
+      if (!registered) navigate("/doctor/entry");
+      else if (requestStatus === "pending" || requestStatus === "rejected")
         navigate("/doctor/status");
-      } else if (!hasAvailability) {
-        // ✅ approved but profile incomplete
-        navigate("/doctor/status");
-      } else if (canAccessBooking) {
-        // ✅ approved + availability completed
-        navigate("/doctor/dashboard");
-      } else {
-        navigate("/doctor/status");
-      }
+      else if (!hasAvailability) navigate("/doctor/status");
+      else if (canAccessBooking) navigate("/doctor/dashboard");
+      else navigate("/doctor/status");
 
       closeSidebar();
     } catch (err) {
@@ -74,34 +65,34 @@ export default function Sidebar({ open, setOpen }) {
     }
   };
 
-
-
   return (
     <>
-      {/* 🔥 MOBILE OVERLAY */}
       {open && <div className="sidebar-overlay" onClick={closeSidebar} />}
 
       <aside className={`sidebar ${open ? "open" : ""}`}>
         <nav className="sidebar-nav">
 
-          {/* 🔍 EXPLORE */}
+          {/* EXPLORE */}
           <div className="sidebar-group">
             <div className="sidebar-group-title">EXPLORE</div>
 
-            <Link className={isActive("/")} to="/" onClick={closeSidebar}>
-              <Home /> Home
+            <Link className={`sidebar-link ${isActive("/")}`} to="/" onClick={closeSidebar}>
+              <Home className="sidebar-icon" />
+              <span>Home</span>
             </Link>
 
-            <Link className={isActive("/doctors")} to="/doctors" onClick={closeSidebar}>
-              <LocalHospital /> Doctors
+            <Link className={`sidebar-link ${isActive("/doctors")}`} to="/doctors" onClick={closeSidebar}>
+              <LocalHospital className="sidebar-icon" />
+              <span>Doctors</span>
             </Link>
 
-            <Link className={isActive("/appointments")} to="/appointments" onClick={closeSidebar}>
-              <Event /> Appointments
+            <Link className={`sidebar-link ${isActive("/appointments")}`} to="/appointments" onClick={closeSidebar}>
+              <Event className="sidebar-icon" />
+              <span>Appointments</span>
             </Link>
           </div>
 
-          {/* 🩺 DOCTOR USE */}
+          {/* DOCTOR USE */}
           <div className="sidebar-group">
             <div className="sidebar-group-title">DOCTOR USE</div>
 
@@ -109,38 +100,44 @@ export default function Sidebar({ open, setOpen }) {
               className={`sidebar-link ${isActive("/doctor/dashboard")}`}
               onClick={handleDoctorDashboard}
             >
-              <MedicalServices /> Doctor Dashboard
+              <MedicalServices className="sidebar-icon" />
+              <span>Doctor Dashboard</span>
             </button>
           </div>
 
-          {/* ℹ️ MORE */}
+          {/* MORE */}
           <div className="sidebar-group">
             <div className="sidebar-group-title">MORE</div>
 
-            <Link className={isActive("/contact")} to="/contact" onClick={closeSidebar}>
-              <ContactSupport /> Contact Us
+            <Link className={`sidebar-link ${isActive("/contact")}`} to="/contact" onClick={closeSidebar}>
+              <ContactSupport className="sidebar-icon" />
+              <span>Contact Us</span>
             </Link>
 
-            <Link className={isActive("/feedback")} to="/feedback" onClick={closeSidebar}>
-              <Feedback /> Feedback
+            <Link className={`sidebar-link ${isActive("/feedback")}`} to="/feedback" onClick={closeSidebar}>
+              <Feedback className="sidebar-icon" />
+              <span>Feedback</span>
             </Link>
 
-            <Link className={isActive("/privacy")} to="/privacy" onClick={closeSidebar}>
-              <PrivacyTip /> Privacy Policy
+            <Link className={`sidebar-link ${isActive("/privacy")}`} to="/privacy" onClick={closeSidebar}>
+              <PrivacyTip className="sidebar-icon" />
+              <span>Privacy Policy</span>
             </Link>
 
-            <Link className={isActive("/about")} to="/about" onClick={closeSidebar}>
-              <Info /> About
+            <Link className={`sidebar-link ${isActive("/about")}`} to="/about" onClick={closeSidebar}>
+              <Info className="sidebar-icon" />
+              <span>About</span>
             </Link>
           </div>
 
-          {/* 🔐 ADMIN */}
+          {/* ADMIN */}
           {isAdmin && (
             <div className="sidebar-group">
               <div className="sidebar-group-title">ADMIN USE</div>
 
-              <Link className={isActive("/admin")} to="/admin" onClick={closeSidebar}>
-                <AdminPanelSettings /> Admin Dashboard
+              <Link className={`sidebar-link ${isActive("/admin")}`} to="/admin" onClick={closeSidebar}>
+                <AdminPanelSettings className="sidebar-icon" />
+                <span>Admin Dashboard</span>
               </Link>
             </div>
           )}
