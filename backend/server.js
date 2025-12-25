@@ -38,6 +38,7 @@ app.use("/api/auth", require("./routes/auth.routes"));
 app.use("/api/doctor/auth", require("./routes/doctorAuth.routes"));
 app.use("/api/availability", require("./routes/availability.routes"));
 app.use("/api/health", require("./routes/health.routes"));
+app.use("/api/symptoms", require("./routes/symptoms.routes"));
 
 /* ---------------- HEALTH CHECK ---------------- */
 app.get("/", (req, res) => {

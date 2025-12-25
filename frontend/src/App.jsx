@@ -28,6 +28,8 @@ import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
 import DoctorLoginEntry from "./pages/doctors/dashboard/DoctorLoginEntry";
 import DoctorStatus from "./pages/doctors/dashboard/DoctorStatus";
 
+import SymptomsChecker from "./pages/public/SymptomsChecker/SymptomsCheck.jsx";
+
 import Contact from "./pages/public/Contact/Contact";
 import PrivacyPolicy from "./pages/public/Privacy/PrivacyPolicy";
 import About from "./pages/public/About/About";
@@ -108,6 +110,7 @@ function App() {
             <Route path="/doctor/entry" element={<DoctorLoginEntry />} />
             <Route path="/doctor/status" element={<DoctorStatus />} />
 
+            <Route path="/symptoms" element={<SymptomsChecker />} />
 
             <Route path="/contact" element={<Contact />} />
             <Route path="/privacy" element={<PrivacyPolicy />} />
