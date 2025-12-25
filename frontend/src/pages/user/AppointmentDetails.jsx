@@ -210,7 +210,7 @@ export default function AppointmentDetails() {
                 textTransform: "none",
                 fontWeight: 600,
               }}
-              onClick={() => navigate(`/doctor/${doctor_id}`)}
+              onClick={() => navigate(`/doctors/${doctor_id}`)}
             >
               View Doctor Profile
             </Button>
