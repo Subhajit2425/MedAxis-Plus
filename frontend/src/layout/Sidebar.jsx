@@ -138,16 +138,16 @@ export default function Sidebar({ open, setOpen }) {
           <div className="sidebar-group">
             <div className="sidebar-group-title">MORE</div>
 
-            <Link className={isActive("/contact")} to="/contact" onClick={closeSidebar}>
-              <ContactSupport sx={sidebarIconSx(isActive("/contact"))} /> Contact Us
+            <Link className={isActive("/privacy")} to="/privacy" onClick={closeSidebar}>
+              <PrivacyTip sx={sidebarIconSx(isActive("/privacy"))} /> Privacy Policy
             </Link>
 
             <Link className={isActive("/feedback")} to="/feedback" onClick={closeSidebar}>
               <Feedback sx={sidebarIconSx(isActive("/feedback"))} /> Feedback
             </Link>
 
-            <Link className={isActive("/privacy")} to="/privacy" onClick={closeSidebar}>
-              <PrivacyTip sx={sidebarIconSx(isActive("/privacy"))} /> Privacy Policy
+            <Link className={isActive("/contact")} to="/contact" onClick={closeSidebar}>
+              <ContactSupport sx={sidebarIconSx(isActive("/contact"))} /> Contact Us
             </Link>
 
             <Link className={isActive("/about")} to="/about" onClick={closeSidebar}>
