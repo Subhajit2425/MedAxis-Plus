@@ -11,6 +11,8 @@ import {
   Info,
   AdminPanelSettings,
 } from "@mui/icons-material";
+import FactCheckOutlinedIcon from "@mui/icons-material/FactCheckOutlined";
+
 import "./Layout.css";
 
 export default function Sidebar({ open, setOpen }) {
@@ -23,6 +25,7 @@ export default function Sidebar({ open, setOpen }) {
 
   const isDoctorsRoute = () => location.pathname.startsWith("/doctors");
   const isAppointmentsRoute = () => location.pathname.startsWith("/appointments");
+  const isSymptomsRoute = () => location.pathname.startsWith("/symptoms");
   const isDoctorRoute = () => location.pathname.startsWith("/doctor/");
   
 
@@ -112,6 +115,10 @@ export default function Sidebar({ open, setOpen }) {
 
             <Link className={isAppointmentsRoute() ? "active" : ""} to="/appointments" onClick={closeSidebar}>
               <Event sx={sidebarIconSx(isAppointmentsRoute())} /> Appointments
+            </Link>
+
+            <Link className={isSymptomsRoute() ? "active" : ""} to="/symptoms" onClick={closeSidebar}>
+              <FactCheckOutlinedIcon sx={sidebarIconSx(isSymptomsRoute())} /> Symptom Assessment
             </Link>
           </div>
 
