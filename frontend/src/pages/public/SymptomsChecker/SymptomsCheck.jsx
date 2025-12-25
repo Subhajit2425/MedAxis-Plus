@@ -68,7 +68,7 @@ export default function SymptomsCheck() {
     );
 
     const handleConfirm = () => {
-        navigate("/ai-result", {
+        navigate("/symptoms/result", {
             state: { symptoms: selected }
         });
     };
