@@ -3,7 +3,6 @@ import api from "../../api/api";
 import {
   Container,
   Card,
-  CardContent,
   Typography,
   TextField,
   Box,
@@ -20,10 +19,12 @@ import {
   DialogActions,
   Avatar,
   Grid,
+  Chip,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import LogoutIcon from "@mui/icons-material/Logout";
 import AccountCircleIcon from "@mui/icons-material/AccountCircle";
+import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
@@ -45,8 +46,6 @@ export default function Profile() {
   const showSnackbar = (message, severity = "success") =>
     setSnackbar({ open: true, message, severity });
 
-  /* ================= FETCH PROFILE ================= */
-
   useEffect(() => {
     if (!email) {
       navigate("/login");
@@ -62,7 +61,7 @@ export default function Profile() {
           mobileNumber: res.data.mobile_number,
           email: res.data.email,
           dateOfBirth: res.data.date_of_birth.split("T")[0],
-          createdAt: res.data.registration_date.split("T")[0], // ✅ registration date
+          createdAt: res.data.registration_date.split("T")[0],
         });
         setStatus("success");
       })
@@ -95,13 +94,13 @@ export default function Profile() {
     navigate("/", { replace: true });
   };
 
-  /* ================= STATES ================= */
-
   if (status === "loading") {
     return (
-      <Container sx={{ mt: 6, textAlign: "center" }}>
+      <Container sx={{ mt: 8, textAlign: "center" }}>
         <CircularProgress />
-        <Typography mt={2}>Loading profile…</Typography>
+        <Typography mt={2} color="text.secondary">
+          Loading your profile…
+        </Typography>
       </Container>
     );
   }
@@ -114,42 +113,84 @@ export default function Profile() {
     );
   }
 
-  /* ================= UI ================= */
-
   return (
-    <Container maxWidth="sm" sx={{ mt: 6 }}>
-      <Card elevation={8} sx={{ borderRadius: 4 }}>
-        <CardContent sx={{ p: 4 }}>
-          {/* HEADER */}
+    <Container maxWidth="sm" sx={{ mt: 7 }}>
+      <Card
+        elevation={10}
+        sx={{
+          borderRadius: 5,
+          overflow: "hidden",
+          background:
+            "linear-gradient(180deg, #ffffff 0%, #f8fafc 100%)",
+        }}
+      >
+        {/* TOP SECTION */}
+        <Box
+          sx={{
+            px: 4,
+            pt: 4,
+            pb: 3,
+            background:
+              "linear-gradient(135deg, #0f172a, #1e293b)",
+            color: "#fff",
+          }}
+        >
           <Box display="flex" alignItems="center" gap={2}>
             <Avatar
               sx={{
-                width: 64,
-                height: 64,
-                bgcolor: "primary.main",
-                boxShadow: 3,
+                width: 68,
+                height: 68,
+                bgcolor: "#38bdf8",
+                color: "#0f172a",
+                fontWeight: 700,
               }}
             >
-              <AccountCircleIcon sx={{ fontSize: 40 }} />
+              {user.firstName[0]}
             </Avatar>
 
             <Box flex={1}>
-              <Typography variant="h6" fontWeight={700}>
+              <Typography fontSize={20} fontWeight={700}>
                 {user.firstName} {user.lastName}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography fontSize={13} sx={{ opacity: 0.85 }}>
                 {user.email}
               </Typography>
             </Box>
 
-            <IconButton onClick={() => setEditMode(!editMode)}>
+            <IconButton
+              onClick={() => setEditMode(!editMode)}
+              sx={{ color: "#e5e7eb" }}
+            >
               <EditIcon />
             </IconButton>
           </Box>
 
-          <Divider sx={{ my: 3 }} />
+          <Box mt={2}>
+            <Chip
+              icon={<CalendarMonthIcon />}
+              label={`Member since ${user.createdAt}`}
+              size="small"
+              sx={{
+                bgcolor: "rgba(255,255,255,0.15)",
+                color: "#e5e7eb",
+                fontWeight: 500,
+              }}
+            />
+          </Box>
+        </Box>
 
-          {/* DETAILS */}
+        {/* CONTENT */}
+        <Box sx={{ p: 4 }}>
+          <Typography
+            fontWeight={700}
+            fontSize={14}
+            letterSpacing={1}
+            color="text.secondary"
+            mb={2}
+          >
+            PERSONAL INFORMATION
+          </Typography>
+
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6}>
               <TextField
@@ -188,11 +229,11 @@ export default function Profile() {
               <TextField label="Email" value={user.email} fullWidth disabled />
             </Grid>
 
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12}>
               <TextField
                 label="Date of Birth"
-                name="dateOfBirth"
                 type="date"
+                name="dateOfBirth"
                 value={user.dateOfBirth}
                 onChange={handleChange}
                 InputLabelProps={{ shrink: true }}
@@ -200,23 +241,18 @@ export default function Profile() {
                 disabled={!editMode}
               />
             </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Registered On"
-                value={user.createdAt}
-                fullWidth
-                disabled
-              />
-            </Grid>
           </Grid>
 
-          {/* SAVE */}
           {editMode && (
             <Button
               variant="contained"
               fullWidth
-              sx={{ mt: 4, borderRadius: 2 }}
+              sx={{
+                mt: 4,
+                py: 1.3,
+                borderRadius: 2.5,
+                fontWeight: 600,
+              }}
               onClick={handleSave}
               disabled={saving}
             >
@@ -224,18 +260,19 @@ export default function Profile() {
             </Button>
           )}
 
-          {/* LOGOUT */}
+          <Divider sx={{ my: 4 }} />
+
           <Button
             variant="outlined"
             color="error"
             fullWidth
-            sx={{ mt: 3, borderRadius: 2 }}
             startIcon={<LogoutIcon />}
+            sx={{ borderRadius: 2.5 }}
             onClick={() => setConfirmOpen(true)}
           >
             Logout
           </Button>
-        </CardContent>
+        </Box>
       </Card>
 
       {/* SNACKBAR */}
