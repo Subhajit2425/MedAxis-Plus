@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react"
+import React, { useEffect, useState } from "react";
 import api from "../../api/api";
 import {
   Container,
@@ -18,45 +18,34 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Avatar,
+  Grid,
 } from "@mui/material";
 import EditIcon from "@mui/icons-material/Edit";
 import LogoutIcon from "@mui/icons-material/Logout";
+import AccountCircleIcon from "@mui/icons-material/AccountCircle";
 import { useNavigate } from "react-router-dom";
 
 export default function Profile() {
   const navigate = useNavigate();
-
   const email = localStorage.getItem("userEmail");
+
   const [user, setUser] = useState(null);
   const [editMode, setEditMode] = useState(false);
-  const [status, setStatus] = useState("loading"); // loading | success | error
+  const [status, setStatus] = useState("loading");
   const [saving, setSaving] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const [snackbar, setSnackbar] = useState({
     open: false,
     message: "",
-    severity: "success" // success | error | warning | info
+    severity: "success",
   });
 
-  const showSnackbar = (message, severity = "success") => {
+  const showSnackbar = (message, severity = "success") =>
     setSnackbar({ open: true, message, severity });
-  };
 
-
-  const [confirmOpen, setConfirmOpen] = useState(false);
-  const handleLogoutClick = () => {
-    setConfirmOpen(true);
-  };
-
-  const confirmLogout = async () => {
-    try {
-      localStorage.clear();
-      navigate("/", { replace: true });
-    } finally {
-      setConfirmOpen(false);
-    }
-  };
-
+  /* ================= FETCH PROFILE ================= */
 
   useEffect(() => {
     if (!email) {
@@ -73,46 +62,46 @@ export default function Profile() {
           mobileNumber: res.data.mobile_number,
           email: res.data.email,
           dateOfBirth: res.data.date_of_birth.split("T")[0],
+          createdAt: res.data.registration_date.split("T")[0], // ✅ registration date
         });
         setStatus("success");
       })
       .catch(() => setStatus("error"));
   }, [email, navigate]);
 
-  const handleChange = (e) => {
+  const handleChange = (e) =>
     setUser({ ...user, [e.target.name]: e.target.value });
-  };
 
   const handleSave = async () => {
     setSaving(true);
-
     try {
-      await api.put(
-        `/api/user/${encodeURIComponent(email)}`,
-        {
-          firstName: user.firstName.trim(),
-          lastName: user.lastName.trim(),
-          mobileNumber: user.mobileNumber.trim(),
-          dateOfBirth: user.dateOfBirth
-        }
-      );
-
+      await api.put(`/api/user/${encodeURIComponent(email)}`, {
+        firstName: user.firstName.trim(),
+        lastName: user.lastName.trim(),
+        mobileNumber: user.mobileNumber.trim(),
+        dateOfBirth: user.dateOfBirth,
+      });
       setEditMode(false);
-      showSnackbar("Profile updated successfully", "success");
-    } catch (err) {
-      console.error(err);
-      showSnackbar("Failed to update profile. Please try again.", "error");
+      showSnackbar("Profile updated successfully");
+    } catch {
+      showSnackbar("Failed to update profile", "error");
     } finally {
       setSaving(false);
     }
   };
 
+  const confirmLogout = () => {
+    localStorage.clear();
+    navigate("/", { replace: true });
+  };
+
+  /* ================= STATES ================= */
 
   if (status === "loading") {
     return (
       <Container sx={{ mt: 6, textAlign: "center" }}>
         <CircularProgress />
-        <Typography mt={2}>Loading Profile...</Typography>
+        <Typography mt={2}>Loading profile…</Typography>
       </Container>
     );
   }
@@ -125,18 +114,31 @@ export default function Profile() {
     );
   }
 
+  /* ================= UI ================= */
+
   return (
     <Container maxWidth="sm" sx={{ mt: 6 }}>
-      <Card elevation={6} sx={{ borderRadius: 3 }}>
-        <CardContent>
-          {/* Header */}
-          <Box display="flex" justifyContent="space-between" alignItems="center">
-            <Box>
-              <Typography variant="h5" fontWeight="bold">
-                My Profile
+      <Card elevation={8} sx={{ borderRadius: 4 }}>
+        <CardContent sx={{ p: 4 }}>
+          {/* HEADER */}
+          <Box display="flex" alignItems="center" gap={2}>
+            <Avatar
+              sx={{
+                width: 64,
+                height: 64,
+                bgcolor: "primary.main",
+                boxShadow: 3,
+              }}
+            >
+              <AccountCircleIcon sx={{ fontSize: 40 }} />
+            </Avatar>
+
+            <Box flex={1}>
+              <Typography variant="h6" fontWeight={700}>
+                {user.firstName} {user.lastName}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                Manage your personal details
+                {user.email}
               </Typography>
             </Box>
 
@@ -145,124 +147,119 @@ export default function Profile() {
             </IconButton>
           </Box>
 
-          <Divider sx={{ my: 2 }} />
+          <Divider sx={{ my: 3 }} />
 
-          {/* Profile Fields */}
-          <TextField
-            label="First Name"
-            name="firstName"
-            value={user.firstName}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            disabled={!editMode}
-          />
+          {/* DETAILS */}
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="First Name"
+                name="firstName"
+                value={user.firstName}
+                onChange={handleChange}
+                fullWidth
+                disabled={!editMode}
+              />
+            </Grid>
 
-          <TextField
-            label="Last Name"
-            name="lastName"
-            value={user.lastName}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            disabled={!editMode}
-          />
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Last Name"
+                name="lastName"
+                value={user.lastName}
+                onChange={handleChange}
+                fullWidth
+                disabled={!editMode}
+              />
+            </Grid>
 
-          <TextField
-            label="Mobile Number"
-            name="mobileNumber"
-            value={user.mobileNumber}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            disabled={!editMode}
-          />
+            <Grid item xs={12}>
+              <TextField
+                label="Mobile Number"
+                name="mobileNumber"
+                value={user.mobileNumber}
+                onChange={handleChange}
+                fullWidth
+                disabled={!editMode}
+              />
+            </Grid>
 
-          <TextField
-            label="Email"
-            value={user.email}
-            fullWidth
-            margin="normal"
-            disabled
-          />
+            <Grid item xs={12}>
+              <TextField label="Email" value={user.email} fullWidth disabled />
+            </Grid>
 
-          <TextField
-            label="Date of Birth"
-            name="dateOfBirth"
-            type="date"
-            value={user.dateOfBirth}
-            onChange={handleChange}
-            fullWidth
-            margin="normal"
-            InputLabelProps={{ shrink: true }}
-            disabled={!editMode}
-          />
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Date of Birth"
+                name="dateOfBirth"
+                type="date"
+                value={user.dateOfBirth}
+                onChange={handleChange}
+                InputLabelProps={{ shrink: true }}
+                fullWidth
+                disabled={!editMode}
+              />
+            </Grid>
 
-          {/* Actions */}
+            <Grid item xs={12} sm={6}>
+              <TextField
+                label="Registered On"
+                value={user.createdAt}
+                fullWidth
+                disabled
+              />
+            </Grid>
+          </Grid>
+
+          {/* SAVE */}
           {editMode && (
             <Button
               variant="contained"
               fullWidth
-              sx={{ mt: 3 }}
-
+              sx={{ mt: 4, borderRadius: 2 }}
               onClick={handleSave}
               disabled={saving}
             >
-              {saving ? <CircularProgress size={22} /> : "Save"}
+              {saving ? <CircularProgress size={22} /> : "Save Changes"}
             </Button>
           )}
 
+          {/* LOGOUT */}
           <Button
             variant="outlined"
             color="error"
             fullWidth
-            sx={{ mt: 2 }}
+            sx={{ mt: 3, borderRadius: 2 }}
             startIcon={<LogoutIcon />}
-            onClick={handleLogoutClick}
+            onClick={() => setConfirmOpen(true)}
           >
             Logout
           </Button>
         </CardContent>
       </Card>
 
+      {/* SNACKBAR */}
       <Snackbar
         open={snackbar.open}
         autoHideDuration={5000}
-        anchorOrigin={{ vertical: "top", horizontal: "center" }} // 🔥 TOP is key
-        onClose={(event, reason) => {
-          if (reason === "clickaway") return;
-          setSnackbar({ ...snackbar, open: false });
-        }}
-        sx={{ zIndex: 2000 }} // 🔥 FORCE visibility
+        anchorOrigin={{ vertical: "top", horizontal: "center" }}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
       >
-        <Alert
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{
-            borderRadius: 2,
-            boxShadow: 6,
-            width: "100%"
-          }}
-        >
+        <Alert variant="filled" severity={snackbar.severity}>
           {snackbar.message}
         </Alert>
       </Snackbar>
 
-
-      <Dialog open={confirmOpen} onClose={() => !saving && setConfirmOpen(false)}>
+      {/* LOGOUT CONFIRM */}
+      <Dialog open={confirmOpen} onClose={() => setConfirmOpen(false)}>
         <DialogTitle>Confirm Logout</DialogTitle>
-
         <DialogContent>
           <DialogContentText>
-            You will be logged out of your account. Do you want to continue?
+            You will be logged out of your account.
           </DialogContentText>
         </DialogContent>
-
         <DialogActions>
-          <Button onClick={() => setConfirmOpen(false)}>
-            Cancel
-          </Button>
-
+          <Button onClick={() => setConfirmOpen(false)}>Cancel</Button>
           <Button color="error" variant="contained" onClick={confirmLogout}>
             Logout
           </Button>

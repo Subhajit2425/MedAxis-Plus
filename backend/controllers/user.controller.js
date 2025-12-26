@@ -10,7 +10,7 @@ exports.getUserByEmail = async (req, res) => {
   try {
     const [rows] = await db.execute(
       `
-      SELECT first_name, last_name, mobile_number, email, date_of_birth
+      SELECT first_name, last_name, mobile_number, email, date_of_birth, registration_date
       FROM users
       WHERE email = ?
       `,
