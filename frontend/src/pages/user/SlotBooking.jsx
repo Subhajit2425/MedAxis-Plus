@@ -31,8 +31,6 @@ export default function SlotBooking() {
   const [error, setError] = useState("");
   const [showSlots, setShowSlots] = useState(false);
 
-  const [findingNext, setFindingNext] = useState(false);
-
   useEffect(() => {
     if (!doctorId) navigate("/doctors");
   }, [doctorId, navigate]);
@@ -102,28 +100,6 @@ export default function SlotBooking() {
     });
   };
 
-  const handleNextAvailableSlot = async () => {
-    setError("");
-    setFindingNext(true);
-
-    try {
-      const res = await api.get(
-        `/api/availability/doctor/${doctorId}/next-slot`
-      );
-
-      const { date, slot } = res.data;
-
-      setAppointmentDate(date);
-      setSlots([slot]); // optional, or fetch slots for that date
-      setSelectedSlot(slot);
-      setShowSlots(true);
-    } catch {
-      setError("No upcoming slots available");
-    } finally {
-      setFindingNext(false);
-    }
-  };
-
   return (
     <Container maxWidth="md" sx={{ mt: 6 }}>
       <Card elevation={4} sx={{ borderRadius: 4 }}>
@@ -164,23 +140,7 @@ export default function SlotBooking() {
           >
             Check Available Slots
           </Button>
-
-
-          <Button
-            fullWidth
-            variant="outlined"
-            size="large"
-            onClick={handleNextAvailableSlot}
-            disabled={findingNext}
-            sx={{
-              mb: 2,
-              fontWeight: 600,
-              textTransform: "none",
-            }}
-          >
-            {findingNext ? "Finding next available slot…" : "Next Available Slot"}
-          </Button>
-
+          
 
           {/* LOADER */}
           {loading && (
