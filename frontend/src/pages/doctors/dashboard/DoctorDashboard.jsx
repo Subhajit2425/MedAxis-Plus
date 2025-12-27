@@ -166,7 +166,7 @@ export default function DoctorDashboard() {
             <Stack direction="row" spacing={1} flexWrap="wrap">
               {[
                 { label: "All", value: "all" },
-                { label: "Approved", value: "confirmed" },
+                { label: "Approved", value: "approved" },
                 { label: "Pending", value: "pending" },
                 { label: "Rejected", value: "rejected" },
                 { label: "Cancelled", value: "cancelled" },
@@ -225,7 +225,7 @@ export default function DoctorDashboard() {
                         variant="contained"
                         color="info"
                         onClick={() =>
-                          updateAppointmentStatus(appt.id, "confirmed")
+                          updateAppointmentStatus(appt.id, "approved")
                         }
                       >
                         Approve
