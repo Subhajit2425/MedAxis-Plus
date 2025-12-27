@@ -358,3 +358,161 @@ exports.getDoctorProfile = async (req, res) => {
   }
 };
 
+
+
+/**
+ * GET /api/doctor/appointments/today
+ * Returns today's approved/completed appointments for the logged-in doctor
+ */
+exports.getTodayAppointments = async (req, res) => {
+  try {
+    const doctorEmail = req.query.email;
+
+    if (!doctorEmail) {
+      return res.status(400).json({
+        success: false,
+        message: "Doctor email is required"
+      });
+    }
+
+    // 1️⃣ Get doctor ID from email
+    const [doctorRows] = await db.execute(
+      `SELECT id FROM doctors WHERE email = ?`,
+      [doctorEmail]
+    );
+
+    if (doctorRows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Doctor not found"
+      });
+    }
+
+    const doctorId = doctorRows[0].id;
+
+    // 2️⃣ Fetch today's appointments
+    const [appointments] = await db.execute(
+      `
+      SELECT
+        id,
+        first_name,
+        last_name,
+        mobile_number,
+        email,
+        appointment_date,
+        start_time,
+        end_time,
+        status
+      FROM appointments
+      WHERE doctor_id = ?
+        AND appointment_date = CURDATE()
+        AND status IN ('approved', 'completed')
+      ORDER BY start_time ASC
+      `,
+      [doctorId]
+    );
+
+    res.json({
+      success: true,
+      date: new Date().toISOString().split("T")[0],
+      total: appointments.length,
+      appointments
+    });
+
+  } catch (error) {
+    console.error("Error fetching today's appointments:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to fetch today's appointments"
+    });
+  }
+};
+
+
+/**
+ * PUT /api/doctor/appointments/:id/complete
+ * Marks an approved appointment as completed
+ */
+exports.markAppointmentCompleted = async (req, res) => {
+  const appointmentId = req.params.id;
+
+  try {
+    // 1️⃣ Fetch appointment
+    const [rows] = await db.execute(
+      `
+      SELECT
+        id,
+        appointment_date,
+        start_time,
+        end_time,
+        status
+      FROM appointments
+      WHERE id = ?
+      `,
+      [appointmentId]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: "Appointment not found"
+      });
+    }
+
+    const appointment = rows[0];
+
+    // 2️⃣ Only approved appointments allowed
+    if (appointment.status !== "approved") {
+      return res.status(400).json({
+        success: false,
+        message: "Only approved appointments can be completed"
+      });
+    }
+
+    // 3️⃣ Appointment must be today
+    const today = new Date().toISOString().split("T")[0];
+    if (appointment.appointment_date !== today) {
+      return res.status(400).json({
+        success: false,
+        message: "Only today's appointments can be completed"
+      });
+    }
+
+    // 4️⃣ Prevent completing future time slots
+    const now = new Date();
+
+    const [endHour, endMinute] = appointment.end_time.split(":");
+    const appointmentEnd = new Date();
+    appointmentEnd.setHours(endHour, endMinute, 0, 0);
+
+    if (appointmentEnd > now) {
+      return res.status(400).json({
+        success: false,
+        message: "Cannot complete a future appointment"
+      });
+    }
+
+    // 5️⃣ Mark as completed
+    await db.execute(
+      `
+      UPDATE appointments
+      SET status = 'completed',
+          completed_at = NOW()
+      WHERE id = ?
+      `,
+      [appointmentId]
+    );
+
+    res.json({
+      success: true,
+      message: "Appointment marked as completed"
+    });
+
+  } catch (error) {
+    console.error("Error completing appointment:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to update appointment status"
+    });
+  }
+};

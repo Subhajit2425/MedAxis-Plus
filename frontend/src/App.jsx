@@ -24,9 +24,10 @@ import DoctorEmail from "./pages/doctors/auth/DoctorEmail";
 import DoctorVerifyOtp from "./pages/doctors/auth/DoctorVerifyOtp";
 import DoctorRegister from "./pages/doctors/auth/DoctorRegister";
 import CompleteProfile from "./pages/doctors/auth/CompleteProfile";
-import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
 import DoctorLoginEntry from "./pages/doctors/dashboard/DoctorLoginEntry";
 import DoctorStatus from "./pages/doctors/dashboard/DoctorStatus";
+import DoctorDashboard from "./pages/doctors/dashboard/DoctorDashboard";
+import DoctorSchedule from "./pages/doctors/dashboard/DoctorSchedule";
 
 import SymptomsChecker from "./pages/public/SymptomsChecker/SymptomsCheck.jsx";
 import SymptomsResult from "./pages/public/SymptomsChecker/SymptomsResult.jsx";
@@ -110,6 +111,7 @@ function App() {
             <Route path="/doctor/complete-profile" element={<CompleteProfile />} />
             <Route path="/doctor/entry" element={<DoctorLoginEntry />} />
             <Route path="/doctor/status" element={<DoctorStatus />} />
+            <Route path="/doctor/schedule" element={<DoctorSchedule />} />
 
             <Route path="/symptoms" element={<SymptomsChecker />} />
             <Route path="/symptoms/result" element={<SymptomsResult />} />

@@ -20,9 +20,11 @@ router.get("/profile", doctorController.getDoctorProfile);
 router.get("/appointments", doctorController.getDoctorAppointments);
 router.put("/appointments/:id", doctorController.updateAppointmentStatus);
 
-// Availability & slots
-// router.post("/availability", doctorController.saveAvailability);
-// router.get("/:doctorId/slots", doctorController.getAvailableSlots);
+// Doctor schedule
+router.get("/appointments/today", doctorController.getTodayAppointments);
+
+// Doctor update appointment status
+router.put("/appointments/:id/complete", doctorController.markAppointmentCompleted);
 
 // ✅ DYNAMIC ROUTE LAST
 router.get("/:id", doctorController.getDoctorById);

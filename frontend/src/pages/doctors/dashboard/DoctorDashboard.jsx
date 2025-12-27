@@ -124,24 +124,54 @@ export default function DoctorDashboard() {
       {/* Doctor Card */}
       <Card sx={{ mb: 4, borderRadius: 3 }}>
         <CardContent>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <PersonIcon sx={{ fontSize: 44 }} />
-            <Box>
-              <Typography variant="h5" fontWeight={700}>
-                Dr. {doctor.name}
-              </Typography>
-              <Typography color="text.secondary">
-                {doctor.specialization} • {doctor.experience} yrs
-              </Typography>
-            </Box>
-            <Chip
-              label="Verified"
-              color="info"
-              sx={{ ml: "auto", fontWeight: 600 }}
-            />
+          <Stack
+            direction={{ xs: "column", sm: "row" }}
+            spacing={3}
+            alignItems={{ sm: "center" }}
+          >
+            {/* Doctor Info */}
+            <Stack direction="row" spacing={2} alignItems="center">
+              <PersonIcon sx={{ fontSize: 44 }} />
+              <Box>
+                <Typography variant="h5" fontWeight={700}>
+                  Dr. {doctor.name}
+                </Typography>
+                <Typography color="text.secondary">
+                  {doctor.specialization} • {doctor.experience} yrs
+                </Typography>
+              </Box>
+            </Stack>
+
+            {/* Actions */}
+            <Stack
+              direction="row"
+              spacing={1.5}
+              sx={{ ml: { sm: "auto" } }}
+            >
+              <Chip
+                label="Verified"
+                color="info"
+                sx={{ fontWeight: 600 }}
+              />
+
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/doctor/schedule")}
+                sx={{
+                  textTransform: "none",
+                  fontWeight: 600,
+                  borderRadius: 2,
+                  px: 3
+                }}
+              >
+                Today’s Schedule
+              </Button>
+            </Stack>
           </Stack>
         </CardContent>
       </Card>
+
 
       {/* Filters */}
       <Card sx={{ mb: 4, borderRadius: 3 }}>
