@@ -234,3 +234,76 @@ exports.getDoctorSlots = async (req, res) => {
     res.status(500).json({ error: "Failed to fetch slots" });
   }
 };
+
+
+
+/**
+ * GET /api/availability/doctor/:doctorId/next-slot
+ * Returns the earliest upcoming available slot (today or future)
+ */
+exports.getNextAvailableSlot = async (req, res) => {
+  const { doctorId } = req.params;
+
+  try {
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    // We search up to next 30 days (professional safety limit)
+    const MAX_DAYS_LOOKAHEAD = 30;
+
+    for (let i = 0; i < MAX_DAYS_LOOKAHEAD; i++) {
+      const checkDate = new Date();
+      checkDate.setDate(today.getDate() + i);
+      const dateStr = checkDate.toISOString().split("T")[0];
+
+      // Fetch available slots for this date
+      const [slots] = await db.execute(
+        `
+        SELECT
+          s.start_time,
+          s.end_time
+        FROM doctor_slots s
+        WHERE s.doctor_id = ?
+          AND s.slot_date = ?
+          AND s.available = 1
+        ORDER BY s.start_time ASC
+        `,
+        [doctorId, dateStr]
+      );
+
+      if (!slots.length) continue;
+
+      // If today → skip past-time slots
+      const validSlot = slots.find((slot) => {
+        if (dateStr !== todayStr) return true;
+
+        const [h, m] = slot.start_time.split(":").map(Number);
+        const slotTime = new Date();
+        slotTime.setHours(h, m, 0, 0);
+
+        return slotTime > today;
+      });
+
+      if (validSlot) {
+        return res.json({
+          success: true,
+          date: dateStr,
+          slot: validSlot,
+        });
+      }
+    }
+
+    // No slot found in range
+    return res.status(404).json({
+      success: false,
+      message: "No upcoming slots available",
+    });
+
+  } catch (error) {
+    console.error("Next available slot error:", error);
+    res.status(500).json({
+      success: false,
+      message: "Failed to find next available slot",
+    });
+  }
+};

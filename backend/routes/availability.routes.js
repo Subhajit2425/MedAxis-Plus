@@ -12,5 +12,8 @@ router.get("/doctor/:doctorId", availabilityController.getDoctorAvailability);
 // GET /api/availability/doctor/slots
 router.get("/doctor/:doctorId/slots", availabilityController.getDoctorSlots);
 
+// GET /api/availability/doctor/:doctorId/next-slot
+router.get("/doctor/:doctorId/next-slot", availabilityController.getNextAvailableSlot);
+
 module.exports = router;
 

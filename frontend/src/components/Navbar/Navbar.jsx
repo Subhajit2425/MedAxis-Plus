@@ -23,7 +23,7 @@ export default function Navbar({ onMenuClick }) {
           className="menu-icon"
           onClick={onMenuClick}
           sx={{
-            fontSize: 30,
+            fontSize: 40,
             cursor: 'pointer',
             '& path': {
               fill: '#e5e7eb',
