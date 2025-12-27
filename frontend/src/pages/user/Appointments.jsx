@@ -171,7 +171,7 @@ export default function Appointment() {
       >
         {[
           { label: "All", value: "all" },
-          { label: "Confirmed", value: "confirmed" },
+          { label: "Approved", value: "approved" },
           { label: "Pending", value: "pending" },
           { label: "Rejected", value: "rejected" },
           { label: "Cancelled", value: "cancelled" },
@@ -276,7 +276,7 @@ export default function Appointment() {
                       backgroundColor:
                         appt.status === "pending"
                           ? "#f59e0b"   // yellow
-                          : appt.status === "confirmed"
+                          : appt.status === "approved"
                             ? "#16a34a" // green
                             : appt.status === "cancelled"
                               ? "#64748b" // gray

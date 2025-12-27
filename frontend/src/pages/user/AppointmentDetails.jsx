@@ -94,7 +94,7 @@ export default function AppointmentDetails() {
   const statusColor =
     status === "pending"
       ? "#f59e0b"
-      : status === "confirmed"
+      : status === "approved"
       ? "#16a34a"
       : status === "cancelled"
       ? "#64748b"

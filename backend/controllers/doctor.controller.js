@@ -240,7 +240,7 @@ exports.updateAppointmentStatus = async (req, res) => {
     return res.status(400).json({ error: "Doctor email is required" });
   }
 
-  if (!["confirmed", "rejected"].includes(status)) {
+  if (!["approved", "rejected"].includes(status)) {
     return res.status(400).json({ error: "Invalid status value" });
   }
 
